@@ -81,11 +81,16 @@ public class RoomController {
 
         hotel.setNumberOfRooms(hotel.getNumberOfRooms() + requests.size());
 
-        for (RoomRequest req : requests) {
-            //check if room# already exists
-            //todo
+        for ( RoomRequest req : requests ) {
+            // Check if room# already exists.
+            Integer roomNumber = req.getRoomNumber();
+            Optional<Room> room_opt = roomRepository.findByHotelAndRoomNumber(hotel, roomNumber);
+            if ( room_opt.isPresent() ) {
+                logger.warn("The room with number <" + roomNumber + "> already exists inside the hotel with id <" + hotelId + ">! Will not insert it twice..");
+                continue;
+            }
 
-            Room r = new Room(req.getRoom_number(), hotelId, req.getCapacity(), req.getPrice());
+            Room r = req.asRoom(hotelId);
             r.setHotel(hotel);
 
             roomRepository.save(r);

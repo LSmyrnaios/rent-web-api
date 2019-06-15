@@ -15,8 +15,8 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({
         "id",
-        "room_number",
-        "hotel_id",
+        "roomNumber",
+        "hotelId",
         "capacity",
 })
 public class Room extends UserDateAudit implements Serializable {
@@ -28,8 +28,8 @@ public class Room extends UserDateAudit implements Serializable {
     private Long id;
 
     @Column(name = "room_number")
-    @JsonProperty("room_number")
-    private Integer room_number;
+    @JsonProperty("roomNumber")
+    private Integer roomNumber;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "hotel", nullable = false)
@@ -37,8 +37,8 @@ public class Room extends UserDateAudit implements Serializable {
     private Hotel hotel;
 
     @Transient
-    @JsonProperty("hotel_id")
-    private Long hotel_id;
+    @JsonProperty("hotelId")
+    private Long hotelId;
 
     @Column(name = "capacity")
     @JsonProperty("capacity")
@@ -59,17 +59,17 @@ public class Room extends UserDateAudit implements Serializable {
     public Room() {
     }
 
-    public Room(Integer room_number, Hotel hotel, Integer capacity, Integer price) {
-        this.room_number = room_number;
+    public Room(Integer roomNumber, Hotel hotel, Integer capacity, Integer price) {
+        this.roomNumber = roomNumber;
         this.setHotel(hotel);
         this.capacity = capacity;
         this.price = price;
     }
 
     // Used by the RoomRequest (In which we don't have the hotel-object, just its id)
-    public Room(Integer room_number, Long hotel_id, Integer capacity, Integer price) {
-        this.room_number = room_number;
-        this.hotel_id = hotel_id;
+    public Room(Integer roomNumber, Long hotelId, Integer capacity, Integer price) {
+        this.roomNumber = roomNumber;
+        this.hotelId = hotelId;
         this.capacity = capacity;
         this.price = price;
     }
@@ -82,12 +82,12 @@ public class Room extends UserDateAudit implements Serializable {
         this.id = id;
     }
 
-    public Integer getRoom_number() {
-        return room_number;
+    public Integer getRoomNumber() {
+        return roomNumber;
     }
 
-    public void setRoom_number(Integer room_number) {
-        this.room_number = room_number;
+    public void setRoomNumber(Integer roomNumber) {
+        this.roomNumber = roomNumber;
     }
 
     public Hotel getHotel() {
@@ -96,15 +96,15 @@ public class Room extends UserDateAudit implements Serializable {
 
     public void setHotel(Hotel hotel) {
         this.hotel = hotel;
-        this.hotel_id = hotel.getId();
+        this.hotelId = hotel.getId();
     }
 
-    public Long getHotel_id() {
-        return hotel_id;
+    public Long getHotelId() {
+        return hotelId;
     }
 
-    public void setHotel_id(Long hotel_id) {
-        this.hotel_id = hotel_id;
+    public void setHotelId(Long hotelId) {
+        this.hotelId = hotelId;
     }
 
     public Integer getCapacity() {
@@ -143,8 +143,8 @@ public class Room extends UserDateAudit implements Serializable {
     public String toString() {
         return "Room{" +
                 "id=" + id +
-                ", room_number=" + room_number +
-                ", hotel_id=" + hotel_id +
+                ", roomNumber=" + roomNumber +
+                ", hotelId=" + hotelId +
                 ", capacity=" + capacity +
                 ", calendars=" + calendars +
                 '}';

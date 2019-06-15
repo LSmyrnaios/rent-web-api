@@ -7,7 +7,7 @@ import javax.validation.constraints.NotNull;
 public class RoomRequest {
 
     @NotNull
-    private Integer room_number;
+    private Integer roomNumber;
 
     @NotNull
     private Integer capacity;
@@ -20,19 +20,19 @@ public class RoomRequest {
 
     public Room asRoom(Long hotel_id) {
         return new Room(
-                this.getRoom_number(),
+                this.getRoomNumber(),
                 hotel_id,
                 this.getCapacity(),
                 this.getPrice()
         );
     }
 
-    public Integer getRoom_number() {
-        return room_number;
+    public Integer getRoomNumber() {
+        return roomNumber;
     }
 
-    public void setRoom_number(Integer room_number) {
-        this.room_number = room_number;
+    public void setRoomNumber(Integer roomNumber) {
+        this.roomNumber = roomNumber;
     }
 
     public Integer getCapacity() {
