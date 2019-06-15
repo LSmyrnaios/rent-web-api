@@ -52,7 +52,6 @@ public class RoomController {
         this.hotelRepository = hotelRepository;
         this.calendarRepository = calendarRepository;
         this.transactionRepository = transactionRepository;
-
     }
 
     @GetMapping("")
@@ -70,15 +69,15 @@ public class RoomController {
 
         // Check if the given hotel exists.
         Optional<Hotel> hotel_opt = hotelRepository.findById(hotelId);
-        if (!hotel_opt.isPresent())
+        if ( !hotel_opt.isPresent() )
             return ResponseEntity.badRequest().body("No hotel exists with id = " + hotelId);
 
         Hotel hotel = hotel_opt.get();
 
         // Check if the current-user is the hotel-owner or if it's the admin, otherwise throw a "NotAuthorizedException".
-        if ( !current_user.getUser().getId().equals(hotel.getBusiness().getProvider_id())
+        if ( !current_user.getUser().getId().equals(hotel.getBusiness().getProvider().getId())
                 && !current_user.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN")) )
-            throw new NotAuthorizedException("You are not authorized to add rooms in hotel " + hotel.getName() + " !");
+            throw new NotAuthorizedException("You are not authorized to add rooms in hotel <" + hotel.getName() + "> !");
 
         hotel.setNumberOfRooms(hotel.getNumberOfRooms() + requests.size());
 

@@ -9,9 +9,9 @@ public class RoomRequest {
     @NotNull
     private Integer room_number;
 
-    //    private Long hotel_id;
     @NotNull
     private Integer capacity;
+
     @NotNull
     private Integer price;
 
@@ -34,14 +34,6 @@ public class RoomRequest {
     public void setRoom_number(Integer room_number) {
         this.room_number = room_number;
     }
-
-//    public Long getHotel_id() {
-//        return hotel_id;
-//    }
-//
-//    public void setHotel_id(Long hotel_id) {
-//        this.hotel_id = hotel_id;
-//    }
 
     public Integer getCapacity() {
         return capacity;

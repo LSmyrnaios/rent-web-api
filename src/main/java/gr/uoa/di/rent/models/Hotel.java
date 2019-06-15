@@ -10,6 +10,8 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 
+import static gr.uoa.di.rent.config.Constraint.EMAIL_MAX;
+
 @Entity
 @Table(name = "hotels", schema = "rent")
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -42,7 +44,7 @@ public class Hotel extends UserDateAudit implements Serializable {
     private String name;
 
     @Nullable
-    @Column(name = "email", unique = true, length = 60)
+    @Column(name = "email", unique = true, length = EMAIL_MAX)
     @JsonProperty("email")
     private String email;
 

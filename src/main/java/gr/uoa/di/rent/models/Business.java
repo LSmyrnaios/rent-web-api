@@ -12,6 +12,8 @@ import javax.persistence.*;
 import java.util.Date;
 import java.util.List;
 
+import static gr.uoa.di.rent.config.Constraint.EMAIL_MAX;
+
 @Entity
 @Table(name = "businesses", schema = "rent")
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -42,7 +44,7 @@ public class Business extends UserDateAudit {
     private String business_name;
 
     @Nullable
-    @Column(name = "email", unique = true, nullable = false, length = 100)
+    @Column(name = "email", unique = true, nullable = false, length = EMAIL_MAX)
     @JsonProperty("email")
     private String email;
 
@@ -231,7 +233,7 @@ public class Business extends UserDateAudit {
 
     public void setProvider(User provider) {
         this.provider = provider;
-        this.provider_id = provider.getId();
+        this.setProvider_id(provider.getId());
     }
 
     public Long getProvider_id() {

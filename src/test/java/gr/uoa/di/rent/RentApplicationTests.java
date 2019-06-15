@@ -301,13 +301,11 @@ public class RentApplicationTests {
                 room.setCalendars(calendars);*/
                 rooms.add(room);
             }
-
+            hotel.setRooms(rooms);
 
             Collection<Amenity> amenities = new ArrayList<>(amenitiesRepository.findAll());
-
-            // Assign rooms to hotel.
-            hotel.setRooms(rooms);
             hotel.setAmenities(amenities);
+
             hotels.add(hotel);
         }
 

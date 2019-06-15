@@ -10,6 +10,8 @@ import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.List;
 
+import static gr.uoa.di.rent.config.Constraint.EMAIL_MAX;
+
 @Entity
 @Table(name = "users", schema = "rent")
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -41,7 +43,7 @@ public class User extends DateAudit implements Serializable {
     private String password;
 
     @NotNull
-    @Column(name = "email", unique = true, nullable = false, length = 60)
+    @Column(name = "email", unique = true, nullable = false, length = EMAIL_MAX)
     @JsonProperty("email")
     private String email;
 
