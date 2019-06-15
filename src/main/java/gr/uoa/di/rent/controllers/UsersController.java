@@ -84,7 +84,8 @@ public class UsersController {
     private static String genericPhotoName = "generic_profile_photo.png";
     private static String imageNotFoundName = "image_not_found.png";
 
-    public UsersController(UserService userService, UserRepository userRepository, ProfileService profileService, ProfileRepository profileRepository, RoleRepository roleRepository, FileStorageService fileStorageService, PasswordEncoder passwordEncoder, FileController fileController) {
+    public UsersController(UserService userService, UserRepository userRepository, ProfileService profileService, ProfileRepository profileRepository, RoleRepository roleRepository,
+                           FileStorageService fileStorageService, PasswordEncoder passwordEncoder, FileController fileController) {
         this.userService = userService;
         this.userRepository = userRepository;
         this.profileService = profileService;
@@ -246,7 +247,7 @@ public class UsersController {
             }
         }
 
-        return ResponseEntity.ok(null);
+        return ResponseEntity.ok().build();
     }
 
     @PutMapping("/{userId:[\\d]+}/update")
@@ -308,7 +309,7 @@ public class UsersController {
 
     @PostMapping("/{userId:[\\d]+}/profile_photo")
     @PreAuthorize("hasRole('USER')or hasRole('PROVIDER') or hasRole('ADMIN')")
-    public UploadFileResponse uploadProfilePhoto(@RequestParam("file") MultipartFile file, @PathVariable(value = "userId") Long userId, @Valid @CurrentUser Principal principal) {
+    public ResponseEntity<?> uploadProfilePhoto(@RequestParam("file") MultipartFile file, @PathVariable(value = "userId") Long userId, @Valid @CurrentUser Principal principal) {
 
         // If current user is not Admin and the given "userId" is not the same as the current user requesting, then return error.
         if (!principal.getUser().getId().equals(userId) && !principal.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"))) {
@@ -320,28 +321,29 @@ public class UsersController {
                 .orElseThrow(() -> new UserNotExistException("User with id <" + userId + "> does not exist!"));
 
         String fileName = file.getOriginalFilename();
-
-        if (fileName == null) {
-            logger.error("Failure when retrieving the filename of the incoming file!");
-            return new UploadFileResponse(null, null, null, file.getSize());
+        if ( fileName == null ) {
+            String errorMessage = "Failure when retrieving the filename of the incoming file!";
+            logger.error(errorMessage);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
         }
 
         String fileExtension = FilenameUtils.getExtension(fileName)
                                             .toLowerCase(); // Linux are case insensitive, so make all file-extensions to lowerCase.
 
         // Replace with standard profile_photo name.
-        fileName = StringUtils.replace(fileName, fileName, profilePhotoBaseName + "." + fileExtension);
+        fileName = profilePhotoBaseName + "." + fileExtension;
 
         String fileDownloadURI = profileBaseURI + userId + "/" + fileName;
 
         // Update database with the new "profile_photo"-name..
         if (profileRepository.updatePictureById(userId, fileDownloadURI) == 0) {
-            logger.error("Could not update the picture for user with id: " + userId);
-            return new UploadFileResponse(fileName, null, null, file.getSize()); // Don't want to store a file having n relation with the database.. so return..
+            String errorMessage = "Could not update the picture for user with id: " + userId;
+            logger.error(errorMessage);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMessage);
         } else
             profileRepository.flush(); // We want the DB to be updated immediately.
 
-        // Send file to be stored.
+        // Send file to be stored. We set a new principal in order for the following method to know the user who will have its photo changed who might not be the current user (the current user might be the admin who changes the photo of a user).
         return fileController.uploadFile(Principal.getInstance(user), file, fileName, "photos", fileDownloadURI);
     }
 

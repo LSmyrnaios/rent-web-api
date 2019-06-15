@@ -14,13 +14,6 @@ public class UploadFileResponse {
     public UploadFileResponse() {
     }
 
-    public UploadFileResponse(String fileName, String fileDownloadUri, String fileType, long filesize) {
-        this.fileName = fileName;
-        this.fileDownloadUri = fileDownloadUri;
-        this.fileType = fileType;
-        this.filesize = filesize;
-    }
-
     public UploadFileResponse(File file) {
 
         this.id = file.getId();

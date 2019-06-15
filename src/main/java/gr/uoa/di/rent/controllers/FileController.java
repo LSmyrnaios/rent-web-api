@@ -39,7 +39,7 @@ public class FileController {
 
     @PostMapping("/upload")
     @PreAuthorize("hasRole('USER')or hasRole('PROVIDER') or hasRole('ADMIN')")
-    public UploadFileResponse uploadFile(@Valid @CurrentUser Principal principal, @Valid @RequestParam("file") MultipartFile file,
+    public ResponseEntity<?> uploadFile(@Valid @CurrentUser Principal principal, @Valid @RequestParam("file") MultipartFile file,
                                          String fileName, String innerDir, String fileDownloadUri) {
         User currentUser = principal.getUser();
 
@@ -57,8 +57,7 @@ public class FileController {
                 logger.error(errorMsg);
                 throw new UploadFileException(errorMsg);
             }
-        }
-        else
+        } else
             file_name = fileName;
 
         String role;
@@ -77,12 +76,12 @@ public class FileController {
 
         File objectFile = fileStorageService.storeFile(file, file_name, innerDir, currentUser, fileDownloadUri);
 
-        return new UploadFileResponse(objectFile);
+        return ResponseEntity.ok(new UploadFileResponse(objectFile));
     }
 
     @PostMapping("/multiple")
     @PreAuthorize("hasRole('USER')or hasRole('PROVIDER') or hasRole('ADMIN')")
-    public List<UploadFileResponse> uploadMultipleFiles(@Valid @CurrentUser Principal principal, @RequestParam("files") MultipartFile[] files) {
+    public List<ResponseEntity<?>> uploadMultipleFiles(@Valid @CurrentUser Principal principal, @RequestParam("files") MultipartFile[] files) {
         return Arrays.asList(files)
                 .stream()
                 .map(file -> uploadFile(principal, file, null, null, null))
