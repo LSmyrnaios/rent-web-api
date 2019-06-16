@@ -102,18 +102,32 @@ public class HotelController {
         /* Store the hotel in the database. */
         hotel = hotelRepository.save(hotel);
 
-        return ResponseEntity.ok(new HotelResponse(hotel));
+        return ResponseEntity.ok(new HotelResponse(hotel, null));
     }
 
     @GetMapping("/{hotelId:[\\d]+}")
     public ResponseEntity<?> getHotelByID(@PathVariable(value = "hotelId") Long hotelId) {
 
-        Optional<Hotel> hotel = hotelRepository.findById(hotelId);
-        if (!hotel.isPresent()) {
+        Optional<Hotel> hotel_opt = hotelRepository.findById(hotelId);
+        if ( !hotel_opt.isPresent() ) {
             logger.warn("No hotel exists with id = " + hotelId);
             return ResponseEntity.notFound().build();
-        } else
-            return ResponseEntity.ok(new HotelResponse(hotel.get()));
+        }
+
+        // Find and set the photo_urls of this hotel.
+        Hotel hotel = hotel_opt.get();
+
+        List<String> hotel_photo_urls = null;
+
+        List<File> hotel_photos = fileRepository.findAllByHotel(hotel);
+        if ( hotel_photos != null ) {
+            hotel_photo_urls = new ArrayList<>();
+            for ( File hotel_photo : hotel_photos ) {
+                hotel_photo_urls.add(hotel_photo.getFileDownloadUri());
+            }
+        }
+
+        return ResponseEntity.ok(new HotelResponse(hotel, hotel_photo_urls));
     }
 
     @GetMapping("/search")
