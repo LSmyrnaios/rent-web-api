@@ -2,6 +2,8 @@ package gr.uoa.di.rent.services;
 
 import gr.uoa.di.rent.exceptions.FileStorageException;
 import gr.uoa.di.rent.exceptions.FileNotFoundException;
+import gr.uoa.di.rent.models.Hotel;
+import gr.uoa.di.rent.models.Room;
 import gr.uoa.di.rent.models.User;
 import gr.uoa.di.rent.properties.FileStorageProperties;
 import gr.uoa.di.rent.repositories.FileRepository;
@@ -32,6 +34,7 @@ public class FileStorageService {
 
     @Autowired
     public FileStorageService(FileStorageProperties fileStorageProperties, FileRepository fileRepository) throws FileStorageException {
+
         this.fileStorageLocation = Paths.get(fileStorageProperties.getUploadDir()).toAbsolutePath().normalize();
 
         try {
@@ -44,7 +47,8 @@ public class FileStorageService {
 
     public Path getFileStorageLocation() { return fileStorageLocation; }
 
-    public gr.uoa.di.rent.models.File storeFile(MultipartFile file, String fileName, String innerDir, User uploader, String fileDownloadUri) throws FileStorageException {
+    public gr.uoa.di.rent.models.File storeFile(MultipartFile file, String fileName, String innerDir, String fileDownloadUri, User uploader, Hotel hotel, Room room)
+            throws FileStorageException {
 
         String file_name;
 
@@ -57,23 +61,23 @@ public class FileStorageService {
         if ( fileDownloadUri == null )  // If it's not specified by a specific endpoint (e.g. uploadProfilePhoto).
             fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath().path("/files/download/").path(file_name).toUriString();
 
-        gr.uoa.di.rent.models.File objectFile = new gr.uoa.di.rent.models.File(uploader, file_name, file.getContentType(), file.getSize(), fileDownloadUri);
+        gr.uoa.di.rent.models.File objectFile = new gr.uoa.di.rent.models.File(file_name, file.getContentType(), file.getSize(), fileDownloadUri, uploader, hotel, room);
 
         Path path;
         try {
             if ( innerDir != null ) {
-                path = Paths.get(this.fileStorageLocation.toString() + File.separator + innerDir);
+                path = Paths.get(this.fileStorageLocation.toString() + File.separator + innerDir).normalize();
                 Files.createDirectories(path);
-                if ( innerDir.contains("photos") ) {
+
+                if ( (hotel == null) && innerDir.contains("photos") ) {   // Only the "profile-photos" will enter here.
                     // Make sure we delete any previous profile_photo which may have different file-extension (which will cause nothing to be replaced, just two profile_photos to co-exist).
                     File dir = new File(path.toString());
                     FileFilter fileFilter = new WildcardFileFilter("profile_photo.*");
                     File[] files = dir.listFiles(fileFilter);
                     if ( files != null ) {
-                        for (File matchedFile: files) {
+                        for (File matchedFile : files)
                             if ( !matchedFile.delete() )
                                 logger.error("Could not delete file: " + matchedFile.getAbsolutePath());
-                        }
                     }
                 }
             }
@@ -85,7 +89,7 @@ public class FileStorageService {
                 throw new FileStorageException("Sorry! Filename contains invalid path sequence: " + file_name);
             }
 
-            // Copy file to the target location (Replacing existing file with the same name)
+            // Save the file to the target location (Replacing existing file with the same name)
             Path targetLocation = path.resolve(file_name);
             Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
 

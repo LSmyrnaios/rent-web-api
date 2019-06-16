@@ -56,8 +56,7 @@ public class HotelController {
 
     @PostMapping("")
     @PreAuthorize("hasRole('PROVIDER') or hasRole('ADMIN')")
-    public ResponseEntity<?> createHotel(@Valid @RequestBody HotelRequest hotelRequest,
-                                         @Valid @CurrentUser Principal principal) {
+    public ResponseEntity<?> createHotel(@Valid @RequestBody HotelRequest hotelRequest, @Valid @CurrentUser Principal principal) {
 
         User provider = principal.getUser();
 
@@ -108,6 +107,7 @@ public class HotelController {
 
     @GetMapping("/search")
     public SearchResponse searchHotels(@Valid PagedHotelsFilter pagedHotelsFilters) {
+
         try {
             PaginatedResponseUtil.validateParameters(pagedHotelsFilters.getPage(), pagedHotelsFilters.getSize(),
                     pagedHotelsFilters.getSort_field(), Hotel.class);

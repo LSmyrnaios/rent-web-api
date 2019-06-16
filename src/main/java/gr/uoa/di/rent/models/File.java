@@ -67,12 +67,14 @@ public class File extends UserDateAudit implements Serializable {
     public File() {
     }
 
-    public File(User uploader, String filename, String filetype, Long filesize, String fileDownloadUri) {
-        this.setUploader(uploader);
+    public File(String filename, String filetype, Long filesize, String fileDownloadUri, User uploader, Hotel hotel, Room room) {
         this.filename = filename;
         this.filetype = filetype;
         this.filesize = filesize;
         this.fileDownloadUri = fileDownloadUri;
+        this.setUploader(uploader); // Sets also the "uploader_id"-field.
+        this.hotel = hotel;
+        this.room = room;
     }
 
     public Long getId() {

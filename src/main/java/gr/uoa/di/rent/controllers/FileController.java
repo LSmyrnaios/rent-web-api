@@ -1,6 +1,8 @@
 package gr.uoa.di.rent.controllers;
 
 import gr.uoa.di.rent.exceptions.UploadFileException;
+import gr.uoa.di.rent.models.Hotel;
+import gr.uoa.di.rent.models.Room;
 import gr.uoa.di.rent.models.User;
 import gr.uoa.di.rent.models.File;
 import gr.uoa.di.rent.payload.responses.UploadFileResponse;
@@ -40,7 +42,7 @@ public class FileController {
     @PostMapping("/upload")
     @PreAuthorize("hasRole('USER')or hasRole('PROVIDER') or hasRole('ADMIN')")
     public ResponseEntity<?> uploadFile(@Valid @CurrentUser Principal principal, @Valid @RequestParam("file") MultipartFile file,
-                                         String fileName, String innerDir, String fileDownloadUri) {
+                                        String fileName, String innerDir, String fileDownloadUri, Hotel hotel, Room room) {
         User currentUser = principal.getUser();
 
         if ( file == null ) {
@@ -60,21 +62,26 @@ public class FileController {
         } else
             file_name = fileName;
 
-        String role;
-        if ( innerDir == null || innerDir.contains("photos") ) {
-
-            role = UsersControllerUtil.getRoleNameDirectory(currentUser);
-
-            // Set the innerDir, where the file will be stored.
+        if ( innerDir == null || innerDir.contains("photos") )
+        {
+            String role = UsersControllerUtil.getRoleNameDirectory(currentUser);
             String tempInnerDir = innerDir;
-
             innerDir = java.io.File.separator + role + java.io.File.separator + currentUser.getId() + java.io.File.separator;
 
-            if ( "photos".equals(tempInnerDir) )    // This way there's no NPE.
+            if ( hotel != null ) {
+                innerDir += "hotels" + java.io.File.separator + hotel.getId() + java.io.File.separator;
+
+                if ( room != null )
+                    innerDir += "room" + java.io.File.separator + room.getId() + java.io.File.separator;
+
                 innerDir += "photos";
+            }
+            else if ( "photos".equals(tempInnerDir) ) { // Avoid NPE.
+                innerDir += tempInnerDir;
+            }
         }
 
-        File objectFile = fileStorageService.storeFile(file, file_name, innerDir, currentUser, fileDownloadUri);
+        File objectFile = fileStorageService.storeFile(file, file_name, innerDir, fileDownloadUri, currentUser, hotel, room);
 
         return ResponseEntity.ok(new UploadFileResponse(objectFile));
     }
@@ -84,7 +91,7 @@ public class FileController {
     public List<ResponseEntity<?>> uploadMultipleFiles(@Valid @CurrentUser Principal principal, @RequestParam("files") MultipartFile[] files) {
         return Arrays.asList(files)
                 .stream()
-                .map(file -> uploadFile(principal, file, null, null, null))
+                .map(file -> uploadFile(principal, file, file.getOriginalFilename(), null, null, null, null))
                 .collect(Collectors.toList());
     }
 

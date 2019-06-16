@@ -20,11 +20,13 @@ public interface FileRepository extends JpaRepository<File, Long> {
     void deleteAllByUploader(User user);
 
 
+    // Get all the photos belonging to this hotel.
     List<File> findAllByHotel(Hotel hotel);
 
     void deleteAllByHotel(Hotel hotel);
 
 
+    // Get all the photos belonging to this room.
     List<File> findAllByRoom(Room room);
 
     void deleteAllByRoom(Room room);

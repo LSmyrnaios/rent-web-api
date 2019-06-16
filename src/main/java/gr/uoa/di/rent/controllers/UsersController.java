@@ -10,7 +10,6 @@ import gr.uoa.di.rent.payload.requests.UserUpdateRequest;
 import gr.uoa.di.rent.payload.requests.filters.PagedUsersFilter;
 import gr.uoa.di.rent.payload.responses.LockUnlockResponse;
 import gr.uoa.di.rent.payload.responses.PagedResponse;
-import gr.uoa.di.rent.payload.responses.UploadFileResponse;
 import gr.uoa.di.rent.repositories.ProfileRepository;
 import gr.uoa.di.rent.repositories.RoleRepository;
 import gr.uoa.di.rent.repositories.UserRepository;
@@ -37,7 +36,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -344,7 +342,7 @@ public class UsersController {
             profileRepository.flush(); // We want the DB to be updated immediately.
 
         // Send file to be stored. We set a new principal in order for the following method to know the user who will have its photo changed who might not be the current user (the current user might be the admin who changes the photo of a user).
-        return fileController.uploadFile(Principal.getInstance(user), file, fileName, "photos", fileDownloadURI);
+        return fileController.uploadFile(Principal.getInstance(user), file, fileName, "photos", fileDownloadURI, null, null);
     }
 
 
