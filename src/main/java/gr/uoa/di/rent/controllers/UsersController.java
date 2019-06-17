@@ -78,12 +78,7 @@ public class UsersController {
 
     private static String profileBaseURI = "https://localhost:8443/api/users/";
     private static String profilePhotoBaseName = "profile_photo";
-    private static String fileStoragePath;  // Set during run-time.
-    public static String currentDirectory = System.getProperty("user.dir");
-    public static String localResourcesDirectory = currentDirectory + File.separator + "src" + File.separator + "main" + File.separator + "resources";
-    private static String localImageDirectory = localResourcesDirectory + File.separator + "img";
-    private static String genericPhotoName = "generic_profile_photo.png";
-    private static String imageNotFoundName = "image_not_found.png";
+    private static String genericProfilePhotoName = "generic_profile_photo.png";
 
     public UsersController(UserService userService, UserRepository userRepository, ProfileService profileService, ProfileRepository profileRepository, RoleRepository roleRepository,
                            FileStorageService fileStorageService, PasswordEncoder passwordEncoder, FileController fileController, FileRepository fileRepository) {
@@ -363,17 +358,16 @@ public class UsersController {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotExistException("User with id <" + userId + "> does not exist!"));
 
-        if (fileStoragePath == null) {
-            String roleNameDirectory = UsersControllerUtil.getRoleNameDirectory(user);
-            fileStoragePath = Paths.get(fileStorageService.getFileStorageLocation() + File.separator + roleNameDirectory).toString();
-        }
+        // Set the file-location.
+        String roleNameDirectory = UsersControllerUtil.getRoleNameDirectory(user);
+        String fileStoragePath = Paths.get(fileStorageService.getFileStorageLocation() + File.separator + roleNameDirectory).toString();
 
         String fileFullPath;
         String user_picture = user.getProfile().getPhoto_url();
 
         if (user_picture == null) {
             logger.debug("No picture was found for user with \"user_id\": {}. Loading the generic one.", userId);
-            fileFullPath = localImageDirectory + File.separator + genericPhotoName;
+            fileFullPath = AppConstants.localImageDirectory + File.separator + genericProfilePhotoName;
         } else {
             // Parse the URI and get the filename.
             URI uri;
@@ -382,7 +376,6 @@ public class UsersController {
             } catch (Exception e) {
                 String errorMsg = "Failed to extract the fileName from the profile_url!";
                 logger.error(errorMsg, e);
-                fileStoragePath = null;
                 throw new ProfilePhotoException(errorMsg);
             }
 
@@ -390,7 +383,6 @@ public class UsersController {
             if ( !uriStr.contains(profileBaseURI) ) {
                 String errorMsg = "This uri does not refer to a file existing in this server! - " + uriStr + "";
                 logger.error(errorMsg);
-                fileStoragePath = null;
                 throw new ProfilePhotoException(errorMsg);
             }
 
@@ -404,22 +396,19 @@ public class UsersController {
         } catch (FileNotFoundException fnfe) {
             if (user_picture != null) {   // If the dataBase says that this user has its own profilePhoto, but it was not found in storage..
                 // Loading the "image_not_found", so that the user will be notified that sth's wrong with the storage of its picture, even though one was given.
-                fileFullPath = localImageDirectory + File.separator + imageNotFoundName;
+                fileFullPath = AppConstants.localImageDirectory + File.separator + AppConstants.imageNotFoundName;
                 try {
                     resource = fileStorageService.loadFileAsResource(fileFullPath);
                 } catch (FileNotFoundException fnfe2) {
-                    String errorMsg = "The \"" + imageNotFoundName + "\" was not found in storage!";
+                    String errorMsg = "The \"" + AppConstants.imageNotFoundName + "\" was not found in storage!";
                     logger.error(errorMsg);
                     throw new ProfilePhotoException(errorMsg);
                 }
-            } else {
-                String errorMsg = "The \"" + genericPhotoName + "\" was not found in storage!";
+            } else {    // The generic has being searched but not found.
+                String errorMsg = "The \"" + genericProfilePhotoName + "\" was not found in storage!";
                 logger.error(errorMsg);
                 throw new ProfilePhotoException(errorMsg);
             }
-        }
-        finally { // Reset variable on exception.
-            fileStoragePath = null;
         }
 
         return fileController.GetFileResponse(request, resource);

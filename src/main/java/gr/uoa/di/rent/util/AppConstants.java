@@ -33,4 +33,9 @@ public interface AppConstants {
             "parking",
             "roomService"
     );
+
+    String currentDirectory = System.getProperty("user.dir");
+    String localResourcesDirectory = currentDirectory + java.io.File.separator + "src" + java.io.File.separator + "main" + java.io.File.separator + "resources";
+    String localImageDirectory = localResourcesDirectory + java.io.File.separator + "img";
+    String imageNotFoundName = "image_not_found.png";
 }
