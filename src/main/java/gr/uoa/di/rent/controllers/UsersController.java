@@ -10,6 +10,7 @@ import gr.uoa.di.rent.payload.requests.UserUpdateRequest;
 import gr.uoa.di.rent.payload.requests.filters.PagedUsersFilter;
 import gr.uoa.di.rent.payload.responses.LockUnlockResponse;
 import gr.uoa.di.rent.payload.responses.PagedResponse;
+import gr.uoa.di.rent.repositories.FileRepository;
 import gr.uoa.di.rent.repositories.ProfileRepository;
 import gr.uoa.di.rent.repositories.RoleRepository;
 import gr.uoa.di.rent.repositories.UserRepository;
@@ -69,6 +70,8 @@ public class UsersController {
 
     private final FileStorageService fileStorageService;
 
+    private final FileRepository fileRepository;
+
     private final PasswordEncoder passwordEncoder;
 
     private final FileController fileController;
@@ -83,13 +86,14 @@ public class UsersController {
     private static String imageNotFoundName = "image_not_found.png";
 
     public UsersController(UserService userService, UserRepository userRepository, ProfileService profileService, ProfileRepository profileRepository, RoleRepository roleRepository,
-                           FileStorageService fileStorageService, PasswordEncoder passwordEncoder, FileController fileController) {
+                           FileStorageService fileStorageService, PasswordEncoder passwordEncoder, FileController fileController, FileRepository fileRepository) {
         this.userService = userService;
         this.userRepository = userRepository;
         this.profileService = profileService;
         this.profileRepository = profileRepository;
         this.roleRepository = roleRepository;
         this.fileStorageService = fileStorageService;
+        this.fileRepository = fileRepository;
         this.passwordEncoder = passwordEncoder;
         this.fileController = fileController;
     }
@@ -340,6 +344,9 @@ public class UsersController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMessage);
         } else
             profileRepository.flush(); // We want the DB to be updated immediately.
+
+        // Delete any previous profile_photo-record in the file-table. (Ny having the hotel and the room to "null", we guarantee that if this user is a provider, the following call will not delete any hotel or room photos!)
+        fileRepository.deleteAllByUploaderAndHotelAndRoom(user, null, null);
 
         // Send file to be stored. We set a new principal in order for the following method to know the user who will have its photo changed who might not be the current user (the current user might be the admin who changes the photo of a user).
         return fileController.uploadFile(Principal.getInstance(user), file, fileName, "photos", fileDownloadURI, null, null);
