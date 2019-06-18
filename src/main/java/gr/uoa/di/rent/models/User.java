@@ -56,9 +56,9 @@ public class User extends DateAudit implements Serializable {
     @JsonProperty("locked")
     private Boolean locked;
 
-    @Column(name = "pending_provider", nullable = false)
-    @JsonProperty("pending_provider")
-    private Boolean pendingProvider;
+    @Column(name = "is_pending_provider", nullable = false)
+    @JsonProperty("is_pending_provider")
+    private Boolean isPendingProvider;
 
     @OneToOne(cascade = CascadeType.ALL,
             mappedBy = "owner")
@@ -82,13 +82,13 @@ public class User extends DateAudit implements Serializable {
     }
 
     public User(Long id, @NotNull String username, @NotNull String password, @NotNull String email,
-                Role role, Boolean locked, Boolean pendingProvider, Profile profile, Wallet wallet) {
+                Role role, Boolean locked, Boolean isPendingProvider, Profile profile, Wallet wallet) {
         this.username = username;
         this.password = password;
         this.email = email;
         this.role = role;
         this.locked = locked;
-        this.pendingProvider = pendingProvider;
+        this.isPendingProvider = isPendingProvider;
         this.profile = profile;
         if (id != null)
             this.id = id;
@@ -148,12 +148,12 @@ public class User extends DateAudit implements Serializable {
         this.locked = locked;
     }
 
-    public Boolean getPendingProvider() {
-        return pendingProvider;
+    public Boolean getIsPendingProvider() {
+        return isPendingProvider;
     }
 
-    public void setPendingProvider(Boolean pendingProvider) {
-        this.pendingProvider = pendingProvider;
+    public void setIsPendingProvider(Boolean isPendingProvider) {
+        this.isPendingProvider = isPendingProvider;
     }
 
     public Profile getProfile() {
@@ -198,7 +198,7 @@ public class User extends DateAudit implements Serializable {
                 ", email='" + email + '\'' +
                 ", role=" + role +
                 ", locked=" + locked +
-                ", pendingProvider=" + pendingProvider +
+                ", isPendingProvider=" + isPendingProvider +
                 ", profile=" + profile +
                 ", wallet=" + wallet +
                 '}';

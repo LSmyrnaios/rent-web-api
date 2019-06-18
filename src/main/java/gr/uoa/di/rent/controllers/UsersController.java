@@ -238,7 +238,7 @@ public class UsersController {
         for (Long id : approveApplicationRequest.getUserIDs()) {
             User user = userRepository.getOne(id);
             if (user != null) {
-                user.setPendingProvider(false);
+                user.setIsPendingProvider(false);
                 user.setRole(role);
                 userRepository.save(user);
             }

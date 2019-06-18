@@ -129,7 +129,7 @@ public class AuthenticationController {
             @CurrentUser Principal principal,
             @Valid @RequestBody ProviderApplicationRequest providerApplicationRequest) {
 
-        if (principal.getUser().getPendingProvider()) {
+        if (principal.getUser().getIsPendingProvider()) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
         }
 

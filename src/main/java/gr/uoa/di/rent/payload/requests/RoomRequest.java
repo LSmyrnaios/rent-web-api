@@ -1,5 +1,6 @@
 package gr.uoa.di.rent.payload.requests;
 
+import gr.uoa.di.rent.models.Hotel;
 import gr.uoa.di.rent.models.Room;
 
 import javax.validation.constraints.NotNull;
@@ -18,10 +19,10 @@ public class RoomRequest {
     public RoomRequest() {
     }
 
-    public Room asRoom(Long hotel_id) {
+    public Room asRoom(Hotel hotel) {
         return new Room(
                 this.getRoomNumber(),
-                hotel_id,
+                hotel,
                 this.getCapacity(),
                 this.getPrice()
         );

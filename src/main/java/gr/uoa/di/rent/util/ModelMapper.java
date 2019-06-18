@@ -8,7 +8,7 @@ public class ModelMapper {
     public static User mapUserToUserResponse(User user) {
         return user;
        /* return new UserResponse(new User(user.getId(), user.getUsername(), user.getPassword(),
-                user.getEmail(), user.getRole(), user.getLocked(), user.getPendingProvider(),
+                user.getEmail(), user.getRole(), user.getLocked(), user.getIsPendingProvider(),
                 user.getProfile(), null));*/
     }
 

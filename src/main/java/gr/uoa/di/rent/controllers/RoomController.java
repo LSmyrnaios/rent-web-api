@@ -90,8 +90,7 @@ public class RoomController {
                 continue;
             }
 
-            Room r = req.asRoom(hotelId);
-            r.setHotel(hotel);
+            Room r = req.asRoom(hotel);
 
             roomRepository.save(r);
         }

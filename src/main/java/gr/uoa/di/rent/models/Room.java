@@ -66,14 +66,6 @@ public class Room extends UserDateAudit implements Serializable {
         this.price = price;
     }
 
-    // Used by the RoomRequest (In which we don't have the hotel-object, just its id)
-    public Room(Integer roomNumber, Long hotelId, Integer capacity, Integer price) {
-        this.roomNumber = roomNumber;
-        this.hotelId = hotelId;
-        this.capacity = capacity;
-        this.price = price;
-    }
-
     public Long getId() {
         return id;
     }
