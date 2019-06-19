@@ -11,6 +11,7 @@ import gr.uoa.di.rent.payload.responses.RoomResponse;
 import gr.uoa.di.rent.repositories.*;
 import gr.uoa.di.rent.security.CurrentUser;
 import gr.uoa.di.rent.security.Principal;
+import gr.uoa.di.rent.util.PhotoUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -19,6 +20,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 import java.time.LocalDate;
@@ -44,14 +46,21 @@ public class RoomController {
 
     private final TransactionRepository transactionRepository;
 
+    private final UserRepository userRepository;
+
+    private final FileController fileController;
+
     private final AtomicInteger counter = new AtomicInteger();
 
-    public RoomController(RoomRepository roomRepository, HotelRepository hotelRepository,
-                          CalendarRepository calendarRepository, TransactionRepository transactionRepository) {
+
+    public RoomController(RoomRepository roomRepository, HotelRepository hotelRepository, UserRepository userRepository,
+                          CalendarRepository calendarRepository, TransactionRepository transactionRepository, FileController fileController) {
         this.roomRepository = roomRepository;
         this.hotelRepository = hotelRepository;
         this.calendarRepository = calendarRepository;
         this.transactionRepository = transactionRepository;
+        this.userRepository = userRepository;
+        this.fileController = fileController;
     }
 
     @GetMapping("")
@@ -204,4 +213,16 @@ public class RoomController {
         List<Calendar> calendars = calendarRepository.getOverlappingCalendars(startDate, endDate, roomID);
         return calendars.isEmpty();
     }
+
+
+    /* PHOTOS */
+
+    @PostMapping("/{roomId:[\\d]+}/photos")
+    @PreAuthorize("hasRole('PROVIDER') or hasRole('ADMIN')")
+    public List<ResponseEntity<?>> uploadRoomPhotos(@Valid @CurrentUser Principal principal, @RequestParam("files") MultipartFile[] files,
+                                                    @PathVariable(value = "hotelId") Long hotelId, @PathVariable(value = "roomId") Long roomId) {
+
+        return PhotoUtils.handleUploadOfMultipleHotelOrRoomPhotos(principal, files, hotelId, roomId, fileController, hotelRepository, roomRepository, userRepository, true);
+    }
+
 }
