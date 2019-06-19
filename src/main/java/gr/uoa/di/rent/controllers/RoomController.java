@@ -126,10 +126,9 @@ public class RoomController {
             @CurrentUser Principal principal, @PathVariable(value = "hotelId") Long hotelId,
             @PathVariable(value = "roomId") Long roomId, @Valid @RequestBody ReservationRequest reservationRequest
     ) {
-
         // Check if hotel exists
-        Optional<Hotel> hotel = hotelRepository.findById(hotelId);
-        if (!hotel.isPresent())
+        Optional<Hotel> hotel_opt = hotelRepository.findById(hotelId);
+        if (!hotel_opt.isPresent())
             return ResponseEntity.badRequest().body(
                     new ApiError(
                             HttpStatus.BAD_REQUEST,
@@ -137,13 +136,15 @@ public class RoomController {
                             Collections.singletonList("No hotel was found with id " + hotelId)));
 
         // Check if room exists.
-        Optional<Room> room = roomRepository.findById(roomId);
-        if (!room.isPresent())
+        Optional<Room> room_opt = roomRepository.findById(roomId);
+        if (!room_opt.isPresent())
             return ResponseEntity.badRequest().body(
                     new ApiError(
                             HttpStatus.BAD_REQUEST,
                             "The requested room was not found in the requested hotel!",
                             Collections.singletonList("Room with id " + roomId + " was not found in hotel with id " + hotelId)));
+
+        Room room = room_opt.get();
 
         // Check if valid date format given
         if (reservationRequest.getEndDate().isBefore(reservationRequest.getStartDate()))
@@ -173,17 +174,18 @@ public class RoomController {
                                     " is not available all the days between " + reservationRequest.getStartDate() + " and " +
                                     reservationRequest.getEndDate())));
 
+        int total_price = (int) (room.getPrice() * DAYS.between(reservationRequest.getStartDate(), reservationRequest.getEndDate()));
 
-        int total_price = (int) (room.get().getPrice() * DAYS.between(reservationRequest.getStartDate(), reservationRequest.getEndDate()));
+        User currentUser = principal.getUser();
 
-        Transaction transaction = new Transaction(principal.getUser(), hotel.get().getBusiness(), total_price);
+        Transaction transaction = new Transaction(currentUser, hotel_opt.get().getBusiness(), total_price);
 
         Calendar calendar = new Calendar(
                 reservationRequest.getStartDate(),
                 reservationRequest.getEndDate(),
-                null, room.get()
+                null, room
         );
-        Reservation reservation = new Reservation(room.get(), null, calendar);
+        Reservation reservation = new Reservation(room, null, calendar);
 
         calendar.setReservation(reservation);
 
@@ -193,7 +195,7 @@ public class RoomController {
         calendarRepository.save(calendar);
 
         //execute sql query to subtract money from user, and add said money to business' wallet + admin's business wallet
-        hotelRepository.transferMoney(principal.getUser().getId(), hotelId, (double) total_price);
+        hotelRepository.transferMoney(currentUser.getId(), hotelId, (double) total_price);
 
         return ResponseEntity.ok().body("Room Successfully Booked!");
     }

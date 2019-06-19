@@ -72,7 +72,7 @@ public class FileController {
                 innerDir += "hotels" + java.io.File.separator + hotel.getId() + java.io.File.separator;
 
                 if ( room != null )
-                    innerDir += "room" + java.io.File.separator + room.getId() + java.io.File.separator;
+                    innerDir += "rooms" + java.io.File.separator + room.getId() + java.io.File.separator;
 
                 innerDir += "photos";
             }
