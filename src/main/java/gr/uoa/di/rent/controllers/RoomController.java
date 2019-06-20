@@ -26,6 +26,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -54,11 +55,13 @@ public class RoomController {
 
     private final FileController fileController;
 
+    private final FileRepository fileRepository;
+
     private final AtomicInteger counter = new AtomicInteger();
 
 
     public RoomController(RoomRepository roomRepository, HotelRepository hotelRepository, UserRepository userRepository, FileStorageService fileStorageService,
-                          CalendarRepository calendarRepository, TransactionRepository transactionRepository, FileController fileController) {
+                          CalendarRepository calendarRepository, TransactionRepository transactionRepository, FileController fileController, FileRepository fileRepository) {
         this.roomRepository = roomRepository;
         this.hotelRepository = hotelRepository;
         this.calendarRepository = calendarRepository;
@@ -66,6 +69,7 @@ public class RoomController {
         this.userRepository = userRepository;
         this.fileController = fileController;
         this.fileStorageService = fileStorageService;
+        this.fileRepository = fileRepository;
     }
 
     @GetMapping("")
@@ -122,16 +126,32 @@ public class RoomController {
     public ResponseEntity<?> getHotelRoom(@PathVariable(value = "hotelId") Long hotelId, @PathVariable(value = "roomId") Long roomId) {
 
         // Check if the given hotel exists.
-        Optional<Hotel> hotel = hotelRepository.findById(hotelId);
-        if (!hotel.isPresent())
-            return ResponseEntity.badRequest().body("No hotel exists with id = " + hotelId);
+        Optional<Hotel> hotel_opt = hotelRepository.findById(hotelId);
+        if ( !hotel_opt.isPresent() ) {
+            logger.warn("No hotel exists with id = " + hotelId);
+            return ResponseEntity.badRequest().build();
+        }
 
         // Check and return the room.
-        Optional<Room> room = roomRepository.findById(roomId);
-        if (room.isPresent())
-            return ResponseEntity.ok(new RoomResponse(room.get()));
-        else
-            return ResponseEntity.badRequest().body("No room with id = " + roomId + " was found in hotel with id = " + hotelId);
+        Optional<Room> room_opt = roomRepository.findById(roomId);
+        if ( !room_opt.isPresent() ) {
+            logger.warn("No room with id = " + roomId + " was found in hotel with id = " + hotelId);
+            return ResponseEntity.notFound().build();
+        }
+        Room room = room_opt.get();
+
+        // Find and set the photo_urls of this room.
+        List<String> room_photo_urls = null;
+
+        List<File> room_photos = fileRepository.findAllByRoom(room);
+        if ( room_photos != null ) {
+            room_photo_urls = new ArrayList<>();
+            for ( File room_photo : room_photos ) {
+                room_photo_urls.add(room_photo.getFileDownloadUri());
+            }
+        }
+
+        return ResponseEntity.ok(new RoomResponse(room, room_photo_urls));
     }
 
     @PostMapping("/{roomId:[\\d]+}/reservation")
