@@ -12,7 +12,6 @@ import gr.uoa.di.rent.services.FileStorageService;
 import gr.uoa.di.rent.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.Resource;
 import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +23,6 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.lang.reflect.Field;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -53,7 +51,6 @@ public class HotelController {
     private final AtomicInteger counter = new AtomicInteger();
 
     public static String hotelBaseURI = "https://localhost:8443/api/hotels/";
-    private static String genericHotelPhotoName = "generic_hotel_photo.jpg";
 
 
     public HotelController(BusinessRepository businessRepository, HotelRepository hotelRepository, UserRepository userRepository, FileStorageService fileStorageService,
@@ -238,46 +235,6 @@ public class HotelController {
     // Maybe no authorization should exist here as the hotel_photo should be public.
     public ResponseEntity<?> getHotelPhoto(@PathVariable(value = "hotelId") Long hotelId, @PathVariable(value = "file_name") String file_name, HttpServletRequest request) {
 
-        // First check if the hotel exists.
-        Optional<Hotel> hotel_opt = hotelRepository.findById(hotelId);
-        if ( !hotel_opt.isPresent() ) {
-            String errorMsg = "No hotel exists with id = " + hotelId;
-            logger.error(errorMsg);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMsg);
-        }
-        Hotel hotel = hotel_opt.get();  // Used also for file-insertion later.
-
-        User provider = hotel.getBusiness().getProvider();
-
-        // Set the file-location.
-        String roleNameDirectory = UsersControllerUtil.getRoleNameDirectory(provider);
-        String fileStoragePath = Paths.get(fileStorageService.getFileStorageLocation() + java.io.File.separator + roleNameDirectory).toString();
-
-        String fileFullPath = fileStoragePath + java.io.File.separator + provider.getId() + java.io.File.separator  + "hotels" + java.io.File.separator + hotelId + java.io.File.separator + "photos" + java.io.File.separator + file_name;
-
-        Resource resource;
-        try {
-            resource = fileStorageService.loadFileAsResource(fileFullPath);
-        } catch (FileNotFoundException fnfe) {
-            logger.warn("The photo of hotel with id <" + hotel.getId()  +">, with fileName: \"" + file_name + "\" was not found in storage! Returning the \"genericHotelPhoto\"..");
-            // Load the genericHotelPhoto.
-            fileFullPath = AppConstants.localImageDirectory + java.io.File.separator + genericHotelPhotoName;
-            try {
-                resource = fileStorageService.loadFileAsResource(fileFullPath);
-            } catch (FileNotFoundException fnfe2) {
-                logger.error("The \"" + genericHotelPhotoName + "\" was not found in storage! Returning the \"imageNotFoundPhoto\"..");
-                // Loading the "image_not_found", so that the user will be notified that sth's wrong with the storage of its picture, even though one was given.
-                fileFullPath = AppConstants.localImageDirectory + java.io.File.separator + AppConstants.imageNotFoundName;
-                try {
-                    resource = fileStorageService.loadFileAsResource(fileFullPath);
-                } catch (FileNotFoundException fnfe3) {
-                    String errorMsg = "The \"" + AppConstants.imageNotFoundName + "\" was not found in storage! 404";
-                    logger.error(errorMsg);
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorMsg);
-                }
-            }
-        }
-
-        return fileController.GetFileResponse(request, resource);
+        return PhotoUtils.handleDownloadOfHotelOrRoomPhoto(request, file_name, hotelId, null, hotelRepository, null, fileStorageService, fileController);
     }
 }
