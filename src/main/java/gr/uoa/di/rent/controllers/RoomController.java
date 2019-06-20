@@ -227,7 +227,7 @@ public class RoomController {
     public List<ResponseEntity<?>> uploadRoomPhotos(@Valid @CurrentUser Principal principal, @RequestParam("files") MultipartFile[] files,
                                                     @PathVariable(value = "hotelId") Long hotelId, @PathVariable(value = "roomId") Long roomId) {
 
-        return PhotoUtils.handleUploadOfMultipleHotelOrRoomPhotos(principal, files, hotelId, roomId, fileController, hotelRepository, roomRepository, userRepository, true);
+        return PhotoUtils.handleUploadOfMultipleHotelOrRoomPhotos(principal, files, hotelId, roomId, fileController, hotelRepository, roomRepository, userRepository);
     }
 
     @GetMapping("/{roomId:[\\d]+}/photos/{file_name:(?:[\\d]+.[\\w]{2,4})}")

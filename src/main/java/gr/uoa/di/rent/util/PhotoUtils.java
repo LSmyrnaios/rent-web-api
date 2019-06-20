@@ -38,9 +38,9 @@ public class PhotoUtils {
 
 
     public static List<ResponseEntity<?>> handleUploadOfMultipleHotelOrRoomPhotos(Principal principal, MultipartFile[] files, Long hotelId, Long roomId,
-                                                                                  FileController fileController, HotelRepository hotelRepository, RoomRepository roomRepository, UserRepository userRepository,
-                                                                                  Boolean isForRoomPhotos) {
-
+                                                                                  FileController fileController,
+                                                                                  HotelRepository hotelRepository, RoomRepository roomRepository, UserRepository userRepository)
+    {
         List<ResponseEntity<?>> responses = new ArrayList<>();
 
         if ( files == null || files.length == 0 ) {
@@ -68,6 +68,7 @@ public class PhotoUtils {
             throw new NotAuthorizedException("You are not authorized to update the data of another user!");
         }
 
+        boolean isForRoomPhotos = (roomId != null);
         Room room = null;
         if ( isForRoomPhotos ) {
             if (roomRepository == null ) {

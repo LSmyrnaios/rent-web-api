@@ -40,6 +40,7 @@ public class BusinessController {
     @PreAuthorize("hasRole('PROVIDER') or hasRole('ADMIN')")
     Business newBusiness(@CurrentUser Principal principal,
                          @Valid @RequestBody ProviderApplicationRequest providerApplicationRequest) {
+        // No check is needed to verify that the current user is a provider, since common user don't have access to this endpoint.
         return businessRepository.save(new Business(
                 providerApplicationRequest.getCompany_name(),
                 providerApplicationRequest.getEmail(),
