@@ -11,6 +11,7 @@ import gr.uoa.di.rent.payload.responses.RoomResponse;
 import gr.uoa.di.rent.repositories.*;
 import gr.uoa.di.rent.security.CurrentUser;
 import gr.uoa.di.rent.security.Principal;
+import gr.uoa.di.rent.services.FileStorageService;
 import gr.uoa.di.rent.util.PhotoUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +23,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.time.LocalDate;
 import java.util.Collections;
@@ -48,12 +50,14 @@ public class RoomController {
 
     private final UserRepository userRepository;
 
+    private final FileStorageService fileStorageService;
+
     private final FileController fileController;
 
     private final AtomicInteger counter = new AtomicInteger();
 
 
-    public RoomController(RoomRepository roomRepository, HotelRepository hotelRepository, UserRepository userRepository,
+    public RoomController(RoomRepository roomRepository, HotelRepository hotelRepository, UserRepository userRepository, FileStorageService fileStorageService,
                           CalendarRepository calendarRepository, TransactionRepository transactionRepository, FileController fileController) {
         this.roomRepository = roomRepository;
         this.hotelRepository = hotelRepository;
@@ -61,6 +65,7 @@ public class RoomController {
         this.transactionRepository = transactionRepository;
         this.userRepository = userRepository;
         this.fileController = fileController;
+        this.fileStorageService = fileStorageService;
     }
 
     @GetMapping("")
@@ -223,6 +228,14 @@ public class RoomController {
                                                     @PathVariable(value = "hotelId") Long hotelId, @PathVariable(value = "roomId") Long roomId) {
 
         return PhotoUtils.handleUploadOfMultipleHotelOrRoomPhotos(principal, files, hotelId, roomId, fileController, hotelRepository, roomRepository, userRepository, true);
+    }
+
+    @GetMapping("/{roomId:[\\d]+}/photos/{file_name:(?:[\\d]+.[\\w]{2,4})}")
+    // Maybe no authorization should exist here as the hotel_photo should be public.
+    public ResponseEntity<?> getRoomPhoto(@PathVariable(value = "hotelId") Long hotelId,  @PathVariable(value = "roomId") Long roomId,
+                                           @PathVariable(value = "file_name") String file_name, HttpServletRequest request) {
+
+        return PhotoUtils.handleDownloadOfHotelOrRoomPhoto(request, file_name, hotelId, roomId, hotelRepository, roomRepository, fileStorageService, fileController);
     }
 
 }
