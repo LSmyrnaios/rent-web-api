@@ -23,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.lang.reflect.Field;
+import java.net.URI;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -77,8 +78,6 @@ public class HotelController {
             return ResponseEntity.status(HttpStatus.CONFLICT).body("No business was found for provider with username: " + provider.getUsername());
         }
 
-        logger.debug(business_opt.get().toString());
-
         Business business = business_opt.get();
 
         /* Create a hotel object which will belong to that business. */
@@ -102,7 +101,11 @@ public class HotelController {
         /* Store the hotel in the database. */
         hotel = hotelRepository.save(hotel);
 
-        return ResponseEntity.ok(new HotelResponse(hotel, null));
+        URI uri = UriBuilder.constructUri(hotel, null);
+        if ( uri == null )
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unable to construct the hotel-URI");
+        else
+            return ResponseEntity.created(uri).body(new HotelResponse(hotel, null));
     }
 
     @GetMapping("/{hotelId:[\\d]+}")

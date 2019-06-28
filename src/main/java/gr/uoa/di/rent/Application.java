@@ -4,12 +4,14 @@ package gr.uoa.di.rent;
 import gr.uoa.di.rent.properties.FileStorageProperties;
 import gr.uoa.di.rent.repositories.*;
 import gr.uoa.di.rent.util.InitialDataInserter;
+import gr.uoa.di.rent.util.UriBuilder;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.scheduling.annotation.EnableScheduling;
+//import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.core.env.Environment;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -21,7 +23,7 @@ import java.util.Arrays;
 @EnableConfigurationProperties({
         FileStorageProperties.class
 })
-@EnableScheduling
+//@EnableScheduling
 public class Application {
 
     public static void main(String[] args) {
@@ -40,6 +42,7 @@ public class Application {
         return source;
     }
 
+
     // Insert the required initial-data into the repository.
     @Bean
     public CommandLineRunner insertInitialData(RoleRepository roleRepo, UserRepository userRepo,
@@ -55,6 +58,12 @@ public class Application {
 
             initDataInserter.insertAmenities(amenitiesRepository);
         };
+    }
+
+    @Bean
+    public CommandLineRunner setServerBaseUrl(Environment environment)
+    {
+        return args -> new UriBuilder(environment);
     }
 
 }

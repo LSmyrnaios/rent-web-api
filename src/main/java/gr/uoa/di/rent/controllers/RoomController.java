@@ -13,6 +13,7 @@ import gr.uoa.di.rent.security.CurrentUser;
 import gr.uoa.di.rent.security.Principal;
 import gr.uoa.di.rent.services.FileStorageService;
 import gr.uoa.di.rent.util.PhotoUtils;
+import gr.uoa.di.rent.util.UriBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -25,6 +26,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import java.net.URI;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -113,7 +115,11 @@ public class RoomController {
             roomRepository.save(r);
         }
 
-        return ResponseEntity.created(null).body("Rooms successfully created!");
+        URI uri = UriBuilder.constructUri(hotel, "/rooms");
+        if ( uri == null )
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unable to construct the rooms-URI for hotel with id: <" + hotel.getId() + ">!");
+        else
+            return ResponseEntity.created(uri).body("Rooms successfully created!");
     }
 
     @GetMapping("/paged")
