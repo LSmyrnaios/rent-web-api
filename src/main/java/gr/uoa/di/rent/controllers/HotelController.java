@@ -82,6 +82,15 @@ public class HotelController {
 
         /* Create a hotel object which will belong to that business. */
         Hotel hotel = hotelRequest.asHotel(business.getId());
+
+        // Check if the hotel already exists in the database.
+        Hotel hotelInDb = hotelRepository.findByNameOrEmail(hotel.getName(), hotel.getEmail());
+        if ( hotelInDb != null ) {
+            String errorMsg = "A hotel with the name: \"" + hotel.getName() + "\" or with the email: \"" + hotel.getEmail() + "\", already exists in the database!";
+            logger.warn(errorMsg);
+            return ResponseEntity.badRequest().body(errorMsg);
+        }
+
         hotel.setBusiness(business);
 
         List<Room> rooms = new ArrayList<>();

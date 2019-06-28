@@ -20,6 +20,8 @@ public interface HotelRepository extends JpaRepository<Hotel, Long> {
 
     Hotel findById(long id);
 
+    Hotel findByNameOrEmail(String name, String email);
+
     @Transactional
     @Modifying
     @Query(value = "BEGIN TRANSACTION;\n" +
