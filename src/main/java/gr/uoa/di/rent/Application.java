@@ -60,6 +60,7 @@ public class Application {
         };
     }
 
+
     @Bean
     public CommandLineRunner setServerBaseUrl(Environment environment)
     {

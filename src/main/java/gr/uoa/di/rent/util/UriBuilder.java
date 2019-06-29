@@ -20,9 +20,9 @@ public class UriBuilder {
         baseUrl = "http";
 
         String sslEnabled = environment.getProperty("server.ssl.enabled");
-        if ( sslEnabled == null ) {
-            logger.error("No property \"server.ssl.enabled\" was found in \"application.properties\"!");
-            return;
+        if ( sslEnabled == null ) { // It's expected to not exist if there is no SSL-configuration.
+            logger.warn("No property \"server.ssl.enabled\" was found in \"application.properties\"!");
+            sslEnabled = "false";
         }
         baseUrl += sslEnabled.equals("true") ? "s" : "";
 
@@ -32,26 +32,23 @@ public class UriBuilder {
         baseUrl += hostName;
 
         String serverPort = environment.getProperty("server.port");
-        if ( serverPort == null ) {
+        if ( serverPort == null ) { // This is unacceptable!
             logger.error("No property \"server.port\" was found in \"application.properties\"!");
-            baseUrl = null;
-            return;
+            System.exit(-1);    // Well, I guess the Spring Boot would not start in this case anyway.
         }
         baseUrl += ":" + serverPort;
 
         String baseInternalPath = environment.getProperty("server.servlet.context-path");
-        if ( baseInternalPath == null ) {
-            logger.error("No property \"server.servlet.context-path\" was found in \"application.properties\"!");
-            baseUrl = null;
-            return;
+        if ( baseInternalPath != null ) {
+            if ( !baseInternalPath.startsWith("/") )
+                baseUrl += "/";
+            baseUrl += baseInternalPath;
+            if ( !baseInternalPath.endsWith("/") )
+                baseUrl += "/";
+        } else {
+            logger.warn("No property \"server.servlet.context-path\" was found in \"application.properties\"!");    // Yes it's expected.
+            baseUrl += "/";
         }
-        if ( !baseInternalPath.startsWith("/") )
-            baseUrl += "/";
-
-        baseUrl += baseInternalPath;
-
-        if ( !baseInternalPath.endsWith("/") )
-            baseUrl += "/";
 
         logger.debug("ServerBaseURL: " + baseUrl);
     }
