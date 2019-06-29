@@ -42,7 +42,12 @@ public class FileController {
     @PostMapping("/upload")
     @PreAuthorize("hasRole('USER')or hasRole('PROVIDER') or hasRole('ADMIN')")
     public ResponseEntity<?> uploadFile(@Valid @CurrentUser Principal principal, @Valid @RequestParam("file") MultipartFile file,
-                                        String fileName, String innerDir, String fileDownloadUri, Hotel hotel, Room room) {
+                                        String fileName, String innerDir, String fileDownloadUri, Hotel hotel, Room room)
+    {
+        // If the Hotel-object is non-Null, but its name is Null then it means that this the "uploadFile()" was used an an endpoint, so an empty object was created by Spring Boot.
+        if ( (hotel != null) && (hotel.getName() == null) )
+            hotel = null;
+        
         User currentUser = principal.getUser();
 
         if ( file == null ) {
