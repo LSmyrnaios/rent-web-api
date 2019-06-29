@@ -23,9 +23,9 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
-import java.time.LocalDate;
+//import java.time.LocalDate;
 import java.util.*;
-import java.util.stream.Collectors;
+//import java.util.stream.Collectors;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -280,7 +280,7 @@ public class RentApplicationTests {
 
         for (int i = 0; i < numOfHotels; i++)
         {
-            hotel = new Hotel(business, names.get(i), "info@" + String.format("hotel_%d", i + 1) + ".com", numOfRooms, 100 * i, 100 * i, "Short Description " + i, descriptionLongs.get(i), i%3+2.5);
+            hotel = new Hotel(business, names.get(i), "info@" + String.format("hotel_%d", i + 1) + ".com", numOfRooms, 100 * i, 100 * i, "Short Description " + i, descriptionLongs.get(i), i%3+2.5, 0, 0);
             rooms = new ArrayList<>();  // (Re)declare the list to add the new rooms (and throw away the previous).
 
             for (int j = 0; j < numOfRooms; j++) {
@@ -381,7 +381,7 @@ public class RentApplicationTests {
                 25.7,
                 "Nice hotel",
                 "Very nice hotel",
-                4.3);
+                4.3, 0, 0);
 
         hotelRepository.save(newHotel);
 

@@ -35,12 +35,13 @@ public class PhotoUtils {
     private static String genericRoomPhotoName = "generic_room_photo.jpg";
 
 
-    public static List<ResponseEntity<?>> handleUploadOfMultipleHotelOrRoomPhotos(Principal principal, MultipartFile[] files, Long hotelId, FileController fileController, UserRepository userRepository, HotelRepository hotelRepository, boolean isForRooms)
+    public static List<ResponseEntity<?>> handleUploadOfMultipleHotelOrRoomPhotos(Principal principal, MultipartFile file, Long hotelId, FileController fileController,
+                                                                                  UserRepository userRepository, HotelRepository hotelRepository, boolean isForRooms)
     {
         List<ResponseEntity<?>> responses = new ArrayList<>();
 
-        if ( files == null || files.length == 0 ) {
-            String errorMessage = "No files received!";
+        if ( file == null ) {
+            String errorMessage = "No file received!";
             logger.error(errorMessage);
             responses.add(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage));
             return responses;
@@ -74,34 +75,24 @@ public class PhotoUtils {
         }
         baseDownloadURI += "/photos/";
 
-        for ( int i = 0 ; i < files.length ; i++ )
-        {
-            MultipartFile file = files[i];
-
-            if ( file == null ) {
-                logger.warn("Found a null-file in files-list..! Continuing with the next..");
-                continue;
-            }
-
-            // Change the filename to have an incremental value, specific for this hotel or room.
-            String fileName = file.getOriginalFilename();
-            if ( fileName == null ) {
-                String errorMessage = "Failure when retrieving the filename of the incoming file!";
-                logger.error(errorMessage);
-                responses.add(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage));
-                continue;
-            }
-
-            String fileExtension = FilenameUtils.getExtension(fileName)
-                    .toLowerCase(); // Linux are case insensitive, so make all file-extensions to lowerCase.
-
-            fileName = (i+1) + "." + fileExtension;
-
-            String fileDownloadURI = baseDownloadURI + fileName;
-
-            // Send file to be stored. We set a new principal in order for the following method to know the user-provider who will have a new photo for its hotel, who provider, might not be the current user (the current user might be the admin who changes the photo of a hotel).
-            responses.add(fileController.uploadFile(Principal.getInstance(user), file, fileName, null, fileDownloadURI, hotel, isForRooms));
+        // Change the filename to have an incremental value, specific for this hotel or room.
+        String fileName = file.getOriginalFilename();
+        if ( fileName == null ) {
+            String errorMessage = "Failure when retrieving the filename of the incoming file!";
+            logger.error(errorMessage);
+            responses.add(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage));
+            return responses;
         }
+
+        String fileExtension = FilenameUtils.getExtension(fileName)
+                .toLowerCase(); // Linux are case insensitive, so make all file-extensions to lowerCase.
+
+        fileName = getPhotosCounter(hotel, isForRooms) + "." + fileExtension;
+
+        String fileDownloadURI = baseDownloadURI + fileName;
+
+        // Send file to be stored. We set a new principal in order for the following method to know the user-provider who will have a new photo for its hotel, who provider, might not be the current user (the current user might be the admin who changes the photo of a hotel).
+        responses.add(fileController.uploadFile(Principal.getInstance(user), file, fileName, null, fileDownloadURI, hotel, isForRooms));
 
         return responses;
     }
@@ -163,6 +154,24 @@ public class PhotoUtils {
         }
 
         return fileController.GetFileResponse(request, resource);
+    }
+
+
+    private static Integer getPhotosCounter(Hotel hotel, boolean isForRooms)
+    {
+        Integer photosCounter;
+
+        if ( isForRooms ) {
+            photosCounter = hotel.getRoomsPhotosCounter();
+            photosCounter ++;
+            hotel.setRoomsPhotosCounter(photosCounter);
+        } else {
+            photosCounter = hotel.getHotelPhotosCounter();
+            photosCounter ++;
+            hotel.setHotelPhotosCounter(photosCounter);
+        }
+
+        return photosCounter;
     }
 
 }
