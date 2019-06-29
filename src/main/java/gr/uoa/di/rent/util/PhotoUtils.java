@@ -6,10 +6,8 @@ import gr.uoa.di.rent.exceptions.FileNotFoundException;
 import gr.uoa.di.rent.exceptions.NotAuthorizedException;
 import gr.uoa.di.rent.exceptions.UserNotExistException;
 import gr.uoa.di.rent.models.Hotel;
-import gr.uoa.di.rent.models.Room;
 import gr.uoa.di.rent.models.User;
 import gr.uoa.di.rent.repositories.HotelRepository;
-import gr.uoa.di.rent.repositories.RoomRepository;
 import gr.uoa.di.rent.repositories.UserRepository;
 import gr.uoa.di.rent.security.Principal;
 import gr.uoa.di.rent.services.FileStorageService;
@@ -37,9 +35,7 @@ public class PhotoUtils {
     private static String genericRoomPhotoName = "generic_room_photo.jpg";
 
 
-    public static List<ResponseEntity<?>> handleUploadOfMultipleHotelOrRoomPhotos(Principal principal, MultipartFile[] files, Long hotelId, Long roomId,
-                                                                                  FileController fileController,
-                                                                                  HotelRepository hotelRepository, RoomRepository roomRepository, UserRepository userRepository)
+    public static List<ResponseEntity<?>> handleUploadOfMultipleHotelOrRoomPhotos(Principal principal, MultipartFile[] files, Long hotelId, FileController fileController, UserRepository userRepository, HotelRepository hotelRepository, boolean isForRooms)
     {
         List<ResponseEntity<?>> responses = new ArrayList<>();
 
@@ -68,34 +64,13 @@ public class PhotoUtils {
             throw new NotAuthorizedException("You are not authorized to update the data of another user!");
         }
 
-        boolean isForRoomPhotos = (roomId != null);
-        Room room = null;
-        if ( isForRoomPhotos ) {
-            if (roomRepository == null ) {
-                String errorMessage = "The received \"roomRepository\" was null!";
-                logger.error(errorMessage);
-                responses.add(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMessage));
-                return responses;
-            }
-
-            // Check if the room exists.
-            Optional<Room> room_opt = roomRepository.findById(roomId);
-            if ( !room_opt.isPresent() ) {
-                String errorMessage = "No room exists with id = " + roomId;
-                logger.error(errorMessage);
-                responses.add(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage));
-                return responses;
-            }
-            room = room_opt.get();
-        }
-
         // Get the provider from the database in order to get passed to the "uploadFile()".
         User user = userRepository.findById(providerId)
                 .orElseThrow(() -> new UserNotExistException("User with id <" + providerId + "> does not exist!"));
 
         String baseDownloadURI = HotelController.hotelBaseURI + hotelId;
-        if ( isForRoomPhotos ) {
-            baseDownloadURI += "/rooms/" + roomId;
+        if ( isForRooms ) {
+            baseDownloadURI += "/rooms";
         }
         baseDownloadURI += "/photos/";
 
@@ -125,16 +100,15 @@ public class PhotoUtils {
             String fileDownloadURI = baseDownloadURI + fileName;
 
             // Send file to be stored. We set a new principal in order for the following method to know the user-provider who will have a new photo for its hotel, who provider, might not be the current user (the current user might be the admin who changes the photo of a hotel).
-            responses.add(fileController.uploadFile(Principal.getInstance(user), file, fileName, null, fileDownloadURI, hotel, room));
+            responses.add(fileController.uploadFile(Principal.getInstance(user), file, fileName, null, fileDownloadURI, hotel, isForRooms));
         }
 
         return responses;
     }
 
 
-    public static ResponseEntity<?> handleDownloadOfHotelOrRoomPhoto(HttpServletRequest request, String file_name, Long hotelId, Long roomId,
-                                                                     HotelRepository hotelRepository, RoomRepository roomRepository,
-                                                                     FileStorageService fileStorageService, FileController fileController)
+    public static ResponseEntity<?> handleDownloadOfHotelOrRoomPhoto(HttpServletRequest request, String file_name, Long hotelId, HotelRepository hotelRepository,
+                                                                     FileStorageService fileStorageService, FileController fileController, boolean isForRooms)
     {
         // First check if the hotel exists.
         Optional<Hotel> hotel_opt = hotelRepository.findById(hotelId);
@@ -145,23 +119,6 @@ public class PhotoUtils {
         }
         Hotel hotel = hotel_opt.get();  // Used also for file-insertion later.
 
-        boolean isForRoomPhoto = (roomId != null);
-        if ( isForRoomPhoto ) {
-            if (roomRepository == null ) {
-                String errorMessage = "The received \"roomRepository\" was null!";
-                logger.error(errorMessage);
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
-            }
-
-            // Check if the requested room exists.
-            Optional<Room> room_opt = roomRepository.findById(roomId);
-            if ( !room_opt.isPresent() ) {
-                String errorMessage = "No room exists with id = " + roomId;
-                logger.error(errorMessage);
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
-            }
-        }
-
         User provider = hotel.getBusiness().getProvider();
 
         // Set the file-location.
@@ -170,8 +127,8 @@ public class PhotoUtils {
 
         String fileFullPath = fileStoragePath + java.io.File.separator + provider.getId() + java.io.File.separator  + "hotels" + java.io.File.separator + hotelId + java.io.File.separator;
 
-        if ( isForRoomPhoto ) {
-            fileFullPath += "rooms" + java.io.File.separator + roomId + java.io.File.separator;
+        if ( isForRooms ) {
+            fileFullPath += "rooms" + java.io.File.separator;
         }
         fileFullPath += "photos" + java.io.File.separator + file_name;
 
@@ -181,11 +138,11 @@ public class PhotoUtils {
         } catch (FileNotFoundException fnfe) {
             // Load the genericHotelPhoto.
             String genericPhoto;
-            if ( isForRoomPhoto ) {
-                logger.warn("The photo of hotel with id <" + hotel.getId()  +">, with fileName: \"" + file_name + "\" was not found in storage! Returning the \"genericHotelPhoto\"..");
+            if ( isForRooms ) {
+                logger.warn("The rooms-photo of hotel with id <" + hotel.getId()  +">, with fileName: \"" + file_name + "\" was not found in storage! Returning the \"genericRoomPhotoName\"..");
                 genericPhoto = genericRoomPhotoName;
             } else {    // We have a room.
-                logger.warn("The photo of room <" + roomId + "> of hotel <" + hotel.getId()  +">, with fileName: \"" + file_name + "\" was not found in storage! Returning the \"genericHotelPhoto\"..");
+                logger.warn("The photo of hotel with id <" + hotel.getId()  +">, with fileName: \"" + file_name + "\" was not found in storage! Returning the \"genericHotelPhoto\"..");
                 genericPhoto = genericHotelPhotoName;
             }
             fileFullPath = AppConstants.localImageDirectory + java.io.File.separator + genericPhoto;

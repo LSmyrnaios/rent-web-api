@@ -89,6 +89,10 @@ public class Hotel extends UserDateAudit implements Serializable {
     @JsonIgnore
     private List<File> hotel_photos;
 
+    @OneToMany(mappedBy = "hotel", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<File> rooms_photos;
+
 
       /*                                                                           */
      /*                 Σχέση Πολλά-Προς-Πολλά ((Hotel))-((Amenities))            */
@@ -253,6 +257,14 @@ public class Hotel extends UserDateAudit implements Serializable {
 
     public void setHotel_photos(List<File> hotel_photos) {
         this.hotel_photos = hotel_photos;
+    }
+
+    public List<File> getRooms_photos() {
+        return rooms_photos;
+    }
+
+    public void setRooms_photos(List<File> rooms_photos) {
+        this.rooms_photos = rooms_photos;
     }
 
     @Override

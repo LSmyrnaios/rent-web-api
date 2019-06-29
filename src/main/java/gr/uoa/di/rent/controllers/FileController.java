@@ -2,7 +2,6 @@ package gr.uoa.di.rent.controllers;
 
 import gr.uoa.di.rent.exceptions.UploadFileException;
 import gr.uoa.di.rent.models.Hotel;
-import gr.uoa.di.rent.models.Room;
 import gr.uoa.di.rent.models.User;
 import gr.uoa.di.rent.models.File;
 import gr.uoa.di.rent.payload.responses.UploadFileResponse;
@@ -42,12 +41,12 @@ public class FileController {
     @PostMapping("/upload")
     @PreAuthorize("hasRole('USER')or hasRole('PROVIDER') or hasRole('ADMIN')")
     public ResponseEntity<?> uploadFile(@Valid @CurrentUser Principal principal, @Valid @RequestParam("file") MultipartFile file,
-                                        String fileName, String innerDir, String fileDownloadUri, Hotel hotel, Room room)
+                                        String fileName, String innerDir, String fileDownloadUri, Hotel hotel, boolean isForRooms)
     {
         // If the Hotel-object is non-Null, but its name is Null then it means that this the "uploadFile()" was used an an endpoint, so an empty object was created by Spring Boot.
         if ( (hotel != null) && (hotel.getName() == null) )
             hotel = null;
-        
+
         User currentUser = principal.getUser();
 
         if ( file == null ) {
@@ -76,8 +75,8 @@ public class FileController {
             if ( hotel != null ) {
                 innerDir += "hotels" + java.io.File.separator + hotel.getId() + java.io.File.separator;
 
-                if ( room != null )
-                    innerDir += "rooms" + java.io.File.separator + room.getId() + java.io.File.separator;
+                if ( isForRooms )
+                    innerDir += "rooms" + java.io.File.separator;
 
                 innerDir += "photos";
             }
@@ -86,7 +85,7 @@ public class FileController {
             }
         }
 
-        File objectFile = fileStorageService.storeFile(file, file_name, innerDir, fileDownloadUri, currentUser, hotel, room);
+        File objectFile = fileStorageService.storeFile(file, file_name, innerDir, fileDownloadUri, currentUser, hotel, isForRooms);
 
         return ResponseEntity.ok(new UploadFileResponse(objectFile));
     }
@@ -96,7 +95,7 @@ public class FileController {
     public List<ResponseEntity<?>> uploadMultipleFiles(@Valid @CurrentUser Principal principal, @RequestParam("files") MultipartFile[] files) {
         return Arrays.asList(files)
                 .stream()
-                .map(file -> uploadFile(principal, file, file.getOriginalFilename(), null, null, null, null))
+                .map(file -> uploadFile(principal, file, file.getOriginalFilename(), null, null, null, false))
                 .collect(Collectors.toList());
     }
 

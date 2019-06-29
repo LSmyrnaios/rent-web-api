@@ -137,6 +137,7 @@ public class RoomController {
             logger.warn("No hotel exists with id = " + hotelId);
             return ResponseEntity.badRequest().build();
         }
+        Hotel hotel = hotel_opt.get();
 
         // Check and return the room.
         Optional<Room> room_opt = roomRepository.findById(roomId);
@@ -149,7 +150,7 @@ public class RoomController {
         // Find and set the photo_urls of this room.
         List<String> room_photo_urls = null;
 
-        List<File> room_photos = fileRepository.findAllByRoom(room);
+        List<File> room_photos = fileRepository.findAllByHotelAndIsForRooms(hotel, true);
         if ( room_photos != null ) {
             room_photo_urls = new ArrayList<>();
             for ( File room_photo : room_photos ) {
@@ -248,20 +249,19 @@ public class RoomController {
 
     /* PHOTOS */
 
-    @PostMapping("/{roomId:[\\d]+}/photos")
+    @PostMapping("/photos")
     @PreAuthorize("hasRole('PROVIDER') or hasRole('ADMIN')")
-    public List<ResponseEntity<?>> uploadRoomPhotos(@Valid @CurrentUser Principal principal, @RequestParam("files") MultipartFile[] files,
-                                                    @PathVariable(value = "hotelId") Long hotelId, @PathVariable(value = "roomId") Long roomId) {
+    public List<ResponseEntity<?>> uploadRoomsPhotos(@Valid @CurrentUser Principal principal, @RequestParam("files") MultipartFile[] files,
+                                                     @PathVariable(value = "hotelId") Long hotelId) {
 
-        return PhotoUtils.handleUploadOfMultipleHotelOrRoomPhotos(principal, files, hotelId, roomId, fileController, hotelRepository, roomRepository, userRepository);
+        return PhotoUtils.handleUploadOfMultipleHotelOrRoomPhotos(principal, files, hotelId, fileController, userRepository, hotelRepository, true);
     }
 
-    @GetMapping("/{roomId:[\\d]+}/photos/{file_name:(?:[\\d]+.[\\w]{2,4})}")
+    @GetMapping("/photos/{file_name:(?:[\\d]+.[\\w]{2,4})}")
     // Maybe no authorization should exist here as the hotel_photo should be public.
-    public ResponseEntity<?> getRoomPhoto(@PathVariable(value = "hotelId") Long hotelId,  @PathVariable(value = "roomId") Long roomId,
-                                           @PathVariable(value = "file_name") String file_name, HttpServletRequest request) {
+    public ResponseEntity<?> getRoomPhoto(@PathVariable(value = "hotelId") Long hotelId, @PathVariable(value = "file_name") String file_name, HttpServletRequest request) {
 
-        return PhotoUtils.handleDownloadOfHotelOrRoomPhoto(request, file_name, hotelId, roomId, hotelRepository, roomRepository, fileStorageService, fileController);
+        return PhotoUtils.handleDownloadOfHotelOrRoomPhoto(request, file_name, hotelId, hotelRepository, fileStorageService, fileController, true);
     }
 
 }

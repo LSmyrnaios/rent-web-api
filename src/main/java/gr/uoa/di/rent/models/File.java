@@ -19,7 +19,8 @@ import java.io.Serializable;
         "filename",
         "filetype",
         "filesize",
-        "fileDownloadUri"
+        "fileDownloadUri",
+        "isForRooms"
 })
 public class File extends UserDateAudit implements Serializable {
 
@@ -59,22 +60,21 @@ public class File extends UserDateAudit implements Serializable {
     @JsonIgnore
     private Hotel hotel;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JoinColumn(name = "room")
-    @JsonIgnore
-    private Room room;
+    @Column(name = "is_for_rooms", nullable = false)
+    @JsonProperty("isForRooms")
+    private Boolean isForRooms;
 
     public File() {
     }
 
-    public File(String filename, String filetype, Long filesize, String fileDownloadUri, User uploader, Hotel hotel, Room room) {
+    public File(String filename, String filetype, Long filesize, String fileDownloadUri, User uploader, Hotel hotel, boolean isForRooms) {
         this.filename = filename;
         this.filetype = filetype;
         this.filesize = filesize;
         this.fileDownloadUri = fileDownloadUri;
         this.setUploader(uploader); // Sets also the "uploader_id"-field.
         this.hotel = hotel;
-        this.room = room;
+        this.isForRooms = isForRooms;
     }
 
     public Long getId() {
@@ -142,12 +142,12 @@ public class File extends UserDateAudit implements Serializable {
         this.hotel = hotel;
     }
 
-    public Room getRoom() {
-        return room;
+    public Boolean isForRooms() {
+        return isForRooms;
     }
 
-    public void setRoom(Room room) {
-        this.room = room;
+    public void setIsForRooms(Boolean forRooms) {
+        isForRooms = forRooms;
     }
 
     @Override
@@ -159,6 +159,7 @@ public class File extends UserDateAudit implements Serializable {
                 ", filetype='" + filetype + '\'' +
                 ", filesize=" + filesize +
                 ", fileDownloadUri='" + fileDownloadUri + '\'' +
+                ", setIsForRooms=" + isForRooms +
                 '}';
     }
 }

@@ -341,10 +341,10 @@ public class UsersController {
             profileRepository.flush(); // We want the DB to be updated immediately.
 
         // Delete any previous profile_photo-record in the file-table. (Ny having the hotel and the room to "null", we guarantee that if this user is a provider, the following call will not delete any hotel or room photos!)
-        fileRepository.deleteAllByUploaderAndHotelAndRoom(user, null, null);
+        fileRepository.deleteAllByUploaderAndHotelAndIsForRooms(user, null, false);
 
         // Send file to be stored. We set a new principal in order for the following method to know the user who will have its photo changed who might not be the current user (the current user might be the admin who changes the photo of a user).
-        return fileController.uploadFile(Principal.getInstance(user), file, fileName, "photos", fileDownloadURI, null, null);
+        return fileController.uploadFile(Principal.getInstance(user), file, fileName, "photos", fileDownloadURI, null, false);
     }
 
 

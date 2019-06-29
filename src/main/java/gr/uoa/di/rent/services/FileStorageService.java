@@ -3,7 +3,6 @@ package gr.uoa.di.rent.services;
 import gr.uoa.di.rent.exceptions.FileStorageException;
 import gr.uoa.di.rent.exceptions.FileNotFoundException;
 import gr.uoa.di.rent.models.Hotel;
-import gr.uoa.di.rent.models.Room;
 import gr.uoa.di.rent.models.User;
 import gr.uoa.di.rent.properties.FileStorageProperties;
 import gr.uoa.di.rent.repositories.FileRepository;
@@ -47,7 +46,7 @@ public class FileStorageService {
 
     public Path getFileStorageLocation() { return fileStorageLocation; }
 
-    public gr.uoa.di.rent.models.File storeFile(MultipartFile file, String fileName, String innerDir, String fileDownloadUri, User uploader, Hotel hotel, Room room)
+    public gr.uoa.di.rent.models.File storeFile(MultipartFile file, String fileName, String innerDir, String fileDownloadUri, User uploader, Hotel hotel, boolean isForRooms)
             throws FileStorageException {
 
         String file_name;
@@ -61,7 +60,7 @@ public class FileStorageService {
         if ( fileDownloadUri == null )  // If it's not specified by a specific endpoint (e.g. uploadProfilePhoto).
             fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath().path("/files/download/").path(file_name).toUriString();
 
-        gr.uoa.di.rent.models.File objectFile = new gr.uoa.di.rent.models.File(file_name, file.getContentType(), file.getSize(), fileDownloadUri, uploader, hotel, room);
+        gr.uoa.di.rent.models.File objectFile = new gr.uoa.di.rent.models.File(file_name, file.getContentType(), file.getSize(), fileDownloadUri, uploader, hotel, isForRooms);
 
         Path path;
         try {

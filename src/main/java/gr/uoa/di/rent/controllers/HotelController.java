@@ -239,7 +239,7 @@ public class HotelController {
     @PreAuthorize("hasRole('PROVIDER') or hasRole('ADMIN')")
     public List<ResponseEntity<?>> uploadHotelPhotos(@Valid @CurrentUser Principal principal, @RequestParam("files") MultipartFile[] files, @PathVariable(value = "hotelId") Long hotelId) {
 
-        return PhotoUtils.handleUploadOfMultipleHotelOrRoomPhotos(principal, files, hotelId, null, fileController, hotelRepository, null, userRepository);
+        return PhotoUtils.handleUploadOfMultipleHotelOrRoomPhotos(principal, files, hotelId, fileController, userRepository, hotelRepository, false);
     }
 
 
@@ -247,6 +247,6 @@ public class HotelController {
     // Maybe no authorization should exist here as the hotel_photo should be public.
     public ResponseEntity<?> getHotelPhoto(@PathVariable(value = "hotelId") Long hotelId, @PathVariable(value = "file_name") String file_name, HttpServletRequest request) {
 
-        return PhotoUtils.handleDownloadOfHotelOrRoomPhoto(request, file_name, hotelId, null, hotelRepository, null, fileStorageService, fileController);
+        return PhotoUtils.handleDownloadOfHotelOrRoomPhoto(request, file_name, hotelId, hotelRepository, fileStorageService, fileController, false);
     }
 }
