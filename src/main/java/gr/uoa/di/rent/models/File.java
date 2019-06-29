@@ -38,11 +38,11 @@ public class File extends UserDateAudit implements Serializable {
     @JsonProperty("uploader_id")
     private Long uploader_id;
 
-    @Column(name = "filename", nullable = false, length = 255)
+    @Column(name = "filename", nullable = false)
     @JsonProperty("filename")
     private String filename;
 
-    @Column(name = "filetype", nullable = false, length = 20)
+    @Column(name = "filetype", nullable = false, length = 50)
     @JsonProperty("filetype")
     private String filetype;
 
@@ -50,7 +50,7 @@ public class File extends UserDateAudit implements Serializable {
     @JsonProperty("filesize")
     private Long filesize;
 
-    @Column(name = "fileDownloadUri", nullable = false)
+    @Column(name = "file_download_uri", nullable = false)
     @JsonProperty("fileDownloadUri")
     private String fileDownloadUri;
 
