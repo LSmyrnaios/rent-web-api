@@ -126,7 +126,7 @@ public class Hotel extends UserDateAudit implements Serializable {
     }
 
     public Hotel(Business business, String name, String email, Integer numberOfRooms, double lat, double lng,
-                 String descriptionShort, String descriptionLong, double stars, Integer hotelPhotosCounter, Integer roomsPhotosCounter) {
+                 String descriptionShort, String descriptionLong, double stars) {
         this.name = name;
 
         if ( email == null )
@@ -141,13 +141,13 @@ public class Hotel extends UserDateAudit implements Serializable {
         this.descriptionLong = descriptionLong;
         this.stars = stars;
         this.setBusiness(business);
-        this.hotelPhotosCounter = hotelPhotosCounter;
-        this.roomsPhotosCounter = roomsPhotosCounter;
+        this.hotelPhotosCounter = 0;
+        this.roomsPhotosCounter = 0;
     }
 
     // Used by the HotelRequest (In which we don't have the business-object, just its id)
     public Hotel(Long business_id, String name, String email, Integer numberOfRooms, double lat, double lng,
-                 String descriptionShort, String descriptionLong, double stars, Integer hotelPhotosCounter, Integer roomsPhotosCounter) {
+                 String descriptionShort, String descriptionLong, double stars) {
         this.name = name;
 
         if ( email == null )
@@ -162,8 +162,8 @@ public class Hotel extends UserDateAudit implements Serializable {
         this.descriptionLong = descriptionLong;
         this.stars = stars;
         this.business_id = business_id;
-        this.hotelPhotosCounter = hotelPhotosCounter;
-        this.roomsPhotosCounter = roomsPhotosCounter;
+        this.hotelPhotosCounter = 0;
+        this.roomsPhotosCounter = 0;
     }
 
     public Long getId() {

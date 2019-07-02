@@ -37,9 +37,7 @@ public class HotelRequest {
                 this.getLng(),
                 this.getDescription_short(),
                 this.getDescription_long(),
-                this.getStars(),
-                0,
-                0
+                this.getStars()
         );
     }
 
