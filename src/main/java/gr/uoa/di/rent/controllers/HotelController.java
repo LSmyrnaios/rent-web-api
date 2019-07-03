@@ -6,6 +6,7 @@ import gr.uoa.di.rent.payload.requests.HotelRequest;
 import gr.uoa.di.rent.payload.requests.filters.PagedHotelsFilter;
 import gr.uoa.di.rent.payload.responses.*;
 import gr.uoa.di.rent.repositories.*;
+import gr.uoa.di.rent.repositories.HotelRepository;
 import gr.uoa.di.rent.security.CurrentUser;
 import gr.uoa.di.rent.security.Principal;
 import gr.uoa.di.rent.services.FileStorageService;
@@ -111,7 +112,7 @@ public class HotelController {
         hotel = hotelRepository.save(hotel);
 
         URI uri = UriBuilder.constructUri(hotel, null);
-        if ( uri == null )
+        if (uri == null)
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unable to construct the hotel-URI");
         else
             return ResponseEntity.created(uri).body(new HotelResponse(hotel, null));
@@ -121,7 +122,7 @@ public class HotelController {
     public ResponseEntity<?> getHotelByID(@PathVariable(value = "hotelId") Long hotelId) {
 
         Optional<Hotel> hotel_opt = hotelRepository.findById(hotelId);
-        if ( !hotel_opt.isPresent() ) {
+        if (!hotel_opt.isPresent()) {
             logger.warn("No hotel exists with id = " + hotelId);
             return ResponseEntity.notFound().build();
         }
@@ -132,9 +133,9 @@ public class HotelController {
         List<String> hotel_photo_urls = null;
 
         List<File> hotel_photos = fileRepository.findAllByHotel(hotel);
-        if ( hotel_photos != null ) {
+        if (hotel_photos != null) {
             hotel_photo_urls = new ArrayList<>();
-            for ( File hotel_photo : hotel_photos ) {
+            for (File hotel_photo : hotel_photos) {
                 hotel_photo_urls.add(hotel_photo.getFileDownloadUri());
             }
         }
@@ -183,26 +184,28 @@ public class HotelController {
         Pageable pageable = PageRequest.of(pagedHotelsFilters.getPage(), pagedHotelsFilters.getSize(),
                 sort_order, pagedHotelsFilters.getSort_field());
 
-        double radius_km = 1000000000000000.0;
-
         /* Get All Hotels  */
         Page<Hotel> hotels;
+        int floor = AppConstants.MIN_ROOM_PRICE;
+        int ceil = AppConstants.MAX_ROOM_PRICE;
 
         /* If no amenities were given, search only with the basic filters */
-        //TODO Add price range and rating filters to the sql query.
         if (!queryAmenities.isEmpty()) {
-            hotels = hotelRepository.findWithFilters(
-                    pagedHotelsFilters.getStart_date(), pagedHotelsFilters.getEnd_date(),
-                    pagedHotelsFilters.getLng(), pagedHotelsFilters.getLat(), radius_km,
-                    pagedHotelsFilters.getVisitors(),
-                    queryAmenities, queryAmenities.size(),
-                    pageable);
+            hotels = hotelRepository.findHotelsByFilters(pagedHotelsFilters, queryAmenities, queryAmenities.size(), pageable);
+            List<Object[]> floorAndCeil = hotelRepository.findFloorAndCeilPrices(pagedHotelsFilters, queryAmenities, queryAmenities.size());
+
+            for (Object[] o : floorAndCeil) {
+                if (o[0] != null && o[1] != null) {
+                    floor = (int) o[0];
+                    ceil = (int) o[1];
+                }
+            }
         } else {
-            hotels = hotelRepository.findAll(pageable);
+            hotels = hotelRepository.findHotelsByFilters(pagedHotelsFilters, queryAmenities, queryAmenities.size(), pageable);
         }
 
         if (hotels.getNumberOfElements() == 0) {
-            return new SearchResponse(0, 200,
+            return new SearchResponse(floor, ceil,
                     new AmenitiesCount(0,
                             0,
                             0,
@@ -218,7 +221,7 @@ public class HotelController {
 
         List<Hotel> hotelResponses = hotels.map(ModelMapper::mapHoteltoHotelResponse).getContent();
 
-        return new SearchResponse(111, 222,
+        return new SearchResponse(floor, ceil,
                 new AmenitiesCount(1,
                         2,
                         3,
