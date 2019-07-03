@@ -125,21 +125,10 @@ public class HotelController {
             logger.warn("No hotel exists with id = " + hotelId);
             return ResponseEntity.notFound().build();
         }
-
-        // Find and set the photo_urls of this hotel.
         Hotel hotel = hotel_opt.get();
 
-        List<String> hotel_photo_urls = null;
-
-        List<File> hotel_photos = fileRepository.findAllByHotel(hotel);
-        if ( hotel_photos != null ) {
-            hotel_photo_urls = new ArrayList<>();
-            for ( File hotel_photo : hotel_photos ) {
-                hotel_photo_urls.add(hotel_photo.getFileDownloadUri());
-            }
-        }
-
-        return ResponseEntity.ok(new HotelResponse(hotel, hotel_photo_urls));
+        // Find and set the photo_urls of this hotel and return the related response.
+        return ResponseEntity.ok(new HotelResponse(hotel, PhotoUtils.getPhotoUrls(hotel, fileRepository, false)));
     }
 
     @GetMapping("/search")
