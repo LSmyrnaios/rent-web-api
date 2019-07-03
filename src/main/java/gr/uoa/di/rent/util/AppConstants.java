@@ -9,6 +9,7 @@ public interface AppConstants {
 
     int DEFAULT_PAGE_NUMBER = 0;
     int DEFAULT_PAGE_SIZE = 10;
+    int MAX_PAGE_SIZE = 50;
 
     // Used to return both users and provider in paginated responses.
     // Otherwise, if role=2 ,then only the users will be returned. If role=3 then only the providers will be returned. (the role=1 refers to the ADMIN who is never returned)
@@ -16,12 +17,23 @@ public interface AppConstants {
     String DEFAULT_ORDER = "asc";
     String DEFAULT_FIELD = "id";
 
-    // Default hotel search bar filters
+    // Default reservation start and end dates
     LocalDate DEFAULT_START_DATE = LocalDate.now().plusDays(1);
     LocalDate DEFAULT_END_DATE = LocalDate.now().plusDays(2);
-    int DEFAULT_VISITORS_NUMBER = 1;
 
-    int MAX_PAGE_SIZE = 50;
+    // Default visitors number and max visitors number
+    int DEFAULT_VISITORS_NUMBER = 1;
+    long MAX_VISITORS_NUMBER = 15;
+
+    // Default radius and max radius
+    double DEFAULT_RADIUS = 5.0;
+    long MAX_RADIUS = 30;
+
+    // Default min and max room price
+    int MIN_ROOM_PRICE = 0;
+    int MAX_ROOM_PRICE = 1000;
+
+
 
     List<String> amenity_names = Arrays.asList(
             "wifi",

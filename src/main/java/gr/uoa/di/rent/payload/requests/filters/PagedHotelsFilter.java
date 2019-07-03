@@ -4,6 +4,7 @@ import gr.uoa.di.rent.util.AppConstants;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.validation.constraints.FutureOrPresent;
+import javax.validation.constraints.Max;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 
@@ -14,18 +15,22 @@ public class PagedHotelsFilter extends PagedResponseFilter {
      *  * * * * * * * * * * * * */
     @FutureOrPresent
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-    private LocalDate start_date = AppConstants.DEFAULT_START_DATE;
+    private LocalDate startDate = AppConstants.DEFAULT_START_DATE;
 
     @FutureOrPresent
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-    private LocalDate end_date = AppConstants.DEFAULT_END_DATE;
+    private LocalDate endDate = AppConstants.DEFAULT_END_DATE;
 
+    @Max(AppConstants.MAX_VISITORS_NUMBER)
     private int visitors = AppConstants.DEFAULT_VISITORS_NUMBER;
 
     @NotNull
     private double lat;
     @NotNull
     private double lng;
+
+    @Max(AppConstants.MAX_RADIUS)
+    private double radius = AppConstants.DEFAULT_RADIUS;
 
     /** * * * * * * * * * * * * *
      *     Amenities Filters    *
@@ -40,20 +45,29 @@ public class PagedHotelsFilter extends PagedResponseFilter {
     private boolean parking = false;
     private boolean roomService = false;
 
+    /** * * * * * * * * * * * * *
+     *     Room Filters    *
+     *  * * * * * * * * * * * * */
+    private int minPrice = AppConstants.MIN_ROOM_PRICE;
+    private int maxPrice = AppConstants.MAX_ROOM_PRICE;
+
+
     public PagedHotelsFilter() {
         super();
     }
 
-    public PagedHotelsFilter(int page, int size, String sort_field, String order, @FutureOrPresent LocalDate start_date,
-                             @FutureOrPresent LocalDate end_date, int visitors, double lat, double lon, boolean wifi,
-                             boolean swimmingPool, boolean gym, boolean spa, boolean bar, boolean restaurant,
-                             boolean petsAllowed, boolean parking, boolean roomService) {
+    public PagedHotelsFilter(int page, int size, String sort_field, String order,
+                             @FutureOrPresent LocalDate startDate, @FutureOrPresent LocalDate endDate, int visitors,
+                             @NotNull double lat, @NotNull double lng, double radius,
+                             boolean wifi, boolean swimmingPool, boolean gym, boolean spa, boolean bar, boolean restaurant,
+                             boolean petsAllowed, boolean parking, boolean roomService, int minPrice, int maxPrice) {
         super(page, size, sort_field, order);
-        this.start_date = start_date;
-        this.end_date = end_date;
+        this.startDate = startDate;
+        this.endDate = endDate;
         this.visitors = visitors;
         this.lat = lat;
-        this.lng = lon;
+        this.lng = lng;
+        this.radius = radius;
         this.wifi = wifi;
         this.swimmingPool = swimmingPool;
         this.gym = gym;
@@ -63,22 +77,24 @@ public class PagedHotelsFilter extends PagedResponseFilter {
         this.petsAllowed = petsAllowed;
         this.parking = parking;
         this.roomService = roomService;
+        this.minPrice = minPrice;
+        this.maxPrice = maxPrice;
     }
 
-    public LocalDate getStart_date() {
-        return start_date;
+    public LocalDate getStartDate() {
+        return startDate;
     }
 
-    public void setStart_date(LocalDate start_date) {
-        this.start_date = start_date;
+    public void setStartDate(LocalDate startDate) {
+        this.startDate = startDate;
     }
 
-    public LocalDate getEnd_date() {
-        return end_date;
+    public LocalDate getEndDate() {
+        return endDate;
     }
 
-    public void setEnd_date(LocalDate end_date) {
-        this.end_date = end_date;
+    public void setEndDate(LocalDate endDate) {
+        this.endDate = endDate;
     }
 
     public int getVisitors() {
@@ -103,6 +119,14 @@ public class PagedHotelsFilter extends PagedResponseFilter {
 
     public void setLng(double lng) {
         this.lng = lng;
+    }
+
+    public double getRadius() {
+        return radius;
+    }
+
+    public void setRadius(double radius) {
+        this.radius = radius;
     }
 
     public boolean isGym() {
@@ -177,23 +201,42 @@ public class PagedHotelsFilter extends PagedResponseFilter {
         this.swimmingPool = swimmingPool;
     }
 
+    public int getMinPrice() {
+        return minPrice;
+    }
+
+    public void setMinPrice(int minPrice) {
+        this.minPrice = minPrice;
+    }
+
+    public int getMaxPrice() {
+        return maxPrice;
+    }
+
+    public void setMaxPrice(int maxPrice) {
+        this.maxPrice = maxPrice;
+    }
+
     @Override
     public String toString() {
         return "PagedHotelsFilter{" +
-                "start_date=" + start_date +
-                ", end_date=" + end_date +
+                "startDate=" + startDate +
+                ", endDate=" + endDate +
                 ", visitors=" + visitors +
                 ", lat=" + lat +
                 ", lng=" + lng +
+                ", radius=" + radius +
+                ", wifi=" + wifi +
+                ", swimmingPool=" + swimmingPool +
                 ", gym=" + gym +
                 ", spa=" + spa +
                 ", bar=" + bar +
-                ", wifi=" + wifi +
-                ", parking=" + parking +
                 ", restaurant=" + restaurant +
                 ", petsAllowed=" + petsAllowed +
+                ", parking=" + parking +
                 ", roomService=" + roomService +
-                ", swimmingPool=" + swimmingPool +
+                ", minPrice=" + minPrice +
+                ", maxPrice=" + maxPrice +
                 '}';
     }
 }
