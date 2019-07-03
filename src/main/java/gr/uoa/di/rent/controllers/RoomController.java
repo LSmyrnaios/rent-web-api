@@ -94,9 +94,11 @@ public class RoomController {
             return responses;
         }
 
+        List<String> photoUrls = PhotoUtils.getPhotoUrls(hotel, fileRepository, true);
+
         for ( Room room : rooms ) {
             // Find and set the photo_urls of this room and add the related response.
-            responses.add(ResponseEntity.ok(new RoomResponse(room, PhotoUtils.getPhotoUrls(hotel, fileRepository, true))));
+            responses.add(ResponseEntity.ok(new RoomResponse(room, photoUrls)));
         }
 
         return responses;
