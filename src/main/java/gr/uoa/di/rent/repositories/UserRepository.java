@@ -39,13 +39,13 @@ public interface UserRepository extends JpaRepository<User, Long> {
     //Update pending provider to true.
     @Transactional
     @Modifying
-    @Query(value="UPDATE users SET pending_provider = true WHERE id = :user_id", nativeQuery = true)
+    @Query(value="UPDATE users SET is_pending_provider = true WHERE id = :user_id", nativeQuery = true)
     int updatePendingProvider(@Param("user_id") Long user_id);
 
     //Update pending providers to true.
     @Transactional
     @Modifying
-    @Query(value="UPDATE users SET pending_provider = false WHERE id IN :userIDs", nativeQuery = true)
+    @Query(value="UPDATE users SET is_pending_provider = false WHERE id IN :userIDs", nativeQuery = true)
     int updatePendingProviders(@Param("userIDs") List<Long> userIDs);
 
     // Lock the users of the given list.

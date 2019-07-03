@@ -20,7 +20,7 @@ import static gr.uoa.di.rent.config.Constraint.EMAIL_MAX;
         "username",
         "email",
         "role",
-        "pending_provider",
+        "is_pending_provider",
         "locked"
 })
 public class User extends DateAudit implements Serializable {

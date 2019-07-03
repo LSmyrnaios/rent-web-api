@@ -6,6 +6,7 @@ import gr.uoa.di.rent.exceptions.AppException;
 import gr.uoa.di.rent.models.*;
 import gr.uoa.di.rent.payload.requests.LoginRequest;
 import gr.uoa.di.rent.repositories.*;
+import gr.uoa.di.rent.repositories.HotelRepository;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -278,16 +279,16 @@ public class RentApplicationTests {
                         "Αυτό είναι το αγαπημένο μέρος των επισκεπτών μας στον προορισμό Σαρμ Ελ Σέιχ σύμφωνα με ανεξάρτητα σχόλια."
         );
 
-        for (int i = 0; i < numOfHotels; i++)
-        {
-            hotel = new Hotel(business, names.get(i), "info@" + String.format("hotel_%d", i + 1) + ".com", numOfRooms, 100 * i, 100 * i, "Short Description " + i, descriptionLongs.get(i), i%3+2.5);
+        for (int i = 0; i < numOfHotels; i++) {
+            hotel = new Hotel(business, names.get(i), "info@" + String.format("hotel_%d", i + 1) + ".com", numOfRooms,
+                    37.983810 + 0.001 * i, 23.727539 + 0.001 * i, "Short Description " + i, descriptionLongs.get(i), i % 3 + 2.5);
             rooms = new ArrayList<>();  // (Re)declare the list to add the new rooms (and throw away the previous).
 
             for (int j = 0; j < numOfRooms; j++) {
 
                 int interval = 0;
 
-                room = new Room((j + 1), hotel, 2 + (i % 4), 50 + (i % 6) * 50);
+                room = new Room((j + 1), hotel, 2 + ((j + i) % 4), 50 + ((j + i) % 6) * 50);
                 /*List<Calendar> calendars = new ArrayList<>();  // (Re)declare the list to add the new calendars (and throw away the previous).
 
                 // rooms will be booked from ( 2 days from now  to  30 days from now )

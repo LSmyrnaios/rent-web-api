@@ -13,10 +13,10 @@ public class SearchResponse {
     }
 
     public SearchResponse(int floorPrice, int ceilPrice, AmenitiesCount amenitiesCount, PagedResponse<Hotel> results) {
+        this.results = results;
         this.floorPrice = floorPrice;
         this.ceilPrice = ceilPrice;
         this.amenitiesCount = amenitiesCount;
-        this.results = results;
     }
 
     public int getFloorPrice() {

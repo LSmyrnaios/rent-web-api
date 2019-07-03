@@ -39,6 +39,8 @@ dependencies {
     implementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
     compile group: 'commons-io', name: 'commons-io', version: '2.6'
 
+    // https://mvnrepository.com/artifact/com.google.guava/guava
+    compile group: 'com.google.guava', name: 'guava', version: '28.0-jre'
 
     testCompile group: 'org.springframework.security', name: 'spring-security-test', version: springSecurityVersion
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
