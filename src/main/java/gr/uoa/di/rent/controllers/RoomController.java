@@ -75,10 +75,35 @@ public class RoomController {
     }
 
     @GetMapping("")
-    public List<Room> getHotelRooms(@PathVariable(value = "hotelId") Long hotelId) {
+    public List<ResponseEntity<?>> getHotelRooms(@PathVariable(value = "hotelId") Long hotelId) {
 
-        return roomRepository.findAllByHotel_id(hotelId);
+        List<ResponseEntity<?>> responses = new ArrayList<>();
+
+        // Check if the given hotel exists.
+        Optional<Hotel> hotel_opt = hotelRepository.findById(hotelId);
+        if ( !hotel_opt.isPresent() ) {
+            logger.warn("No hotel exists with id = " + hotelId);
+            responses.add(ResponseEntity.badRequest().build());
+            return responses;
+        }
+        Hotel hotel = hotel_opt.get();
+
+        List<Room> rooms = roomRepository.findAllByHotel_id(hotelId);
+        if ( rooms == null ) {
+            responses.add(ResponseEntity.notFound().build());
+            return responses;
+        }
+
+        List<String> photoUrls = PhotoUtils.getPhotoUrls(hotel, fileRepository, true);
+
+        for ( Room room : rooms ) {
+            // Find and set the photo_urls of this room and add the related response.
+            responses.add(ResponseEntity.ok(new RoomResponse(room, photoUrls)));
+        }
+
+        return responses;
     }
+
 
     @PostMapping("")
     @PreAuthorize("hasRole('PROVIDER') or hasRole('ADMIN')")
@@ -137,29 +162,18 @@ public class RoomController {
             logger.warn("No hotel exists with id = " + hotelId);
             return ResponseEntity.badRequest().build();
         }
-        Hotel hotel = hotel_opt.get();
 
-        // Check and return the room.
+        // Get the requested room.
         Optional<Room> room_opt = roomRepository.findById(roomId);
         if ( !room_opt.isPresent() ) {
             logger.warn("No room with id = " + roomId + " was found in hotel with id = " + hotelId);
             return ResponseEntity.notFound().build();
         }
-        Room room = room_opt.get();
 
         // Find and set the photo_urls of this room.
-        List<String> room_photo_urls = null;
-
-        List<File> room_photos = fileRepository.findAllByHotelAndIsForRooms(hotel, true);
-        if ( room_photos != null ) {
-            room_photo_urls = new ArrayList<>();
-            for ( File room_photo : room_photos ) {
-                room_photo_urls.add(room_photo.getFileDownloadUri());
-            }
-        }
-
-        return ResponseEntity.ok(new RoomResponse(room, room_photo_urls));
+        return ResponseEntity.ok(new RoomResponse(room_opt.get(), PhotoUtils.getPhotoUrls(hotel_opt.get(), fileRepository, true)));
     }
+
 
     @PostMapping("/{roomId:[\\d]+}/reservation")
     @PreAuthorize("hasRole('USER') or hasRole('PROVIDER')")

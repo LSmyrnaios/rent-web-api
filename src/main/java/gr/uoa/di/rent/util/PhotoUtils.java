@@ -5,8 +5,10 @@ import gr.uoa.di.rent.controllers.HotelController;
 import gr.uoa.di.rent.exceptions.FileNotFoundException;
 import gr.uoa.di.rent.exceptions.NotAuthorizedException;
 import gr.uoa.di.rent.exceptions.UserNotExistException;
+import gr.uoa.di.rent.models.File;
 import gr.uoa.di.rent.models.Hotel;
 import gr.uoa.di.rent.models.User;
+import gr.uoa.di.rent.repositories.FileRepository;
 import gr.uoa.di.rent.repositories.HotelRepository;
 import gr.uoa.di.rent.repositories.UserRepository;
 import gr.uoa.di.rent.security.Principal;
@@ -172,6 +174,19 @@ public class PhotoUtils {
         }
 
         return photosCounter;
+    }
+
+
+    public static List<String> getPhotoUrls(Hotel hotel, FileRepository fileRepository, boolean isForRooms)
+    {
+        List<String> photo_urls = null;
+        List<File> photos = fileRepository.findAllByHotelAndIsForRooms(hotel, isForRooms);
+        if ( photos != null ) {
+            photo_urls = new ArrayList<>();
+            for ( File photo : photos )
+                photo_urls.add(photo.getFileDownloadUri());
+        }
+        return photo_urls;
     }
 
 }
