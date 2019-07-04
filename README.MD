@@ -3,7 +3,7 @@ The API to support the web-application of booking hotel rooms.
 <br/>
 
 ## Rest api documentation:
-https://documenter.getpostman.com/view/1344439/S1TN7gyE?version=latest
+https://documenter.getpostman.com/view/7438311/SVSBvsd2?version=latest
 <br/>
 
 ## How to run
