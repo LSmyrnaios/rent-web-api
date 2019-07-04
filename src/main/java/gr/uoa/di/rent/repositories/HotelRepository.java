@@ -1,5 +1,6 @@
 package gr.uoa.di.rent.repositories;
 
+import gr.uoa.di.rent.models.Business;
 import gr.uoa.di.rent.models.Hotel;
 import gr.uoa.di.rent.payload.requests.filters.PagedHotelsFilter;
 import org.springframework.data.domain.Page;
@@ -21,6 +22,9 @@ public interface HotelRepository extends JpaRepository<Hotel, Long>, CustomHotel
     Hotel findById(long id);
 
     Hotel findByNameOrEmail(String name, String email);
+
+    // Get hotel page according to the given business
+    Page<Hotel> findAllByBusiness(Business business, Pageable pageable);
 
     @Transactional
     @Modifying

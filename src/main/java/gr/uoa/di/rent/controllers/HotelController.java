@@ -17,6 +17,7 @@ import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -133,6 +134,46 @@ public class HotelController {
         hotel.setPhotosUrls(PhotoUtils.getPhotoUrls(hotel, fileRepository, false));
 
         return ResponseEntity.ok(new HotelResponse(hotel));
+    }
+
+
+    @GetMapping("/byProviderId/{providerId:[\\d]+}")
+    @PreAuthorize("hasRole('PROVIDER') or hasRole('ADMIN')")
+    public ResponseEntity<?> getHotelsByProvider(@Valid @CurrentUser Principal principal, @Valid @PathVariable(value = "providerId") Long providerId,
+                                                 PagedHotelsFilter pagedHotelsFilters)
+    {
+        // If current user is not Admin and the given "userId" is not the same as the current user requesting, then return error.
+        if ( !principal.getUser().getId().equals(providerId) && !principal.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN")) ) {
+            throw new NotAuthorizedException("You are not authorized to get the hotel-data of another provider!");
+        }
+
+        // Get the provider by the providerId.
+        User provider = userRepository.findById(providerId).orElse(null);
+        if (provider == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Provider not found!");
+        }
+
+        Business business = provider.getBusiness();
+        if ( business == null )
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("No business was found for provider with username: " + provider.getUsername());
+
+        Pageable pageable = PaginatedResponseUtil.getPageable(pagedHotelsFilters);
+
+        Page<Hotel> hotels = hotelRepository.findAllByBusiness(business, pageable);
+
+        if (hotels.getNumberOfElements() == 0) {
+            return ResponseEntity.status(HttpStatus.OK).body(new PagedResponse<>(Collections.emptyList(), hotels.getNumber(),
+                    hotels.getSize(), hotels.getTotalElements(), hotels.getTotalPages(), hotels.isLast()));
+        }
+
+        List<Hotel> hotelResponses = hotels.map(ModelMapper::mapHoteltoHotelResponse).getContent();
+
+        // Set the hotelPhotosUrls.
+        for ( Hotel hotel : hotelResponses )
+            hotel.setPhotosUrls(PhotoUtils.getPhotoUrls(hotel, fileRepository, false));
+
+        return ResponseEntity.status(HttpStatus.OK).body(new PagedResponse<>(hotelResponses, hotels.getNumber(),
+                hotels.getSize(), hotels.getTotalElements(), hotels.getTotalPages(), hotels.isLast()));
     }
 
     @GetMapping("/search")
