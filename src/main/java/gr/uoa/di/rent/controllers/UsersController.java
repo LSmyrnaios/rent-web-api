@@ -1,6 +1,7 @@
 package gr.uoa.di.rent.controllers;
 
 import gr.uoa.di.rent.exceptions.*;
+import gr.uoa.di.rent.models.Profile;
 import gr.uoa.di.rent.models.Role;
 import gr.uoa.di.rent.models.RoleName;
 import gr.uoa.di.rent.models.User;
@@ -163,18 +164,17 @@ public class UsersController {
     public ResponseEntity getProfileByUsername(@PathVariable(value = "username") String username) {
 
         User user = userRepository.findByUsername(username).orElse(null);
-
-
         if (user == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
         }
-
 
         Double balance = user.getWallet().getBalance();
 
         UserInfo userinformation = new UserInfo(user.getProfile(), balance);
 
-        return ResponseEntity.ok(userinformation);
+        Profile profile = user.getProfile();
+
+        return ResponseEntity.ok(profile);
 
     }
 
