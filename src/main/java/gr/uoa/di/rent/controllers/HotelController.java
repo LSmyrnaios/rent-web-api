@@ -269,7 +269,7 @@ public class HotelController {
 
     @PostMapping("/{hotelId:[\\d]+}/photos")
     @PreAuthorize("hasRole('PROVIDER') or hasRole('ADMIN')")
-    public List<ResponseEntity<?>> uploadHotelPhoto(@Valid @CurrentUser Principal principal, @RequestParam("file") MultipartFile file, @PathVariable(value = "hotelId") Long hotelId) {
+    public ResponseEntity<?> uploadHotelPhoto(@Valid @CurrentUser Principal principal, @RequestParam("file") MultipartFile file, @PathVariable(value = "hotelId") Long hotelId) {
 
         return PhotoUtils.handleUploadOfMultipleHotelOrRoomPhotos(principal, file, hotelId, fileController, userRepository, hotelRepository, false);
     }
