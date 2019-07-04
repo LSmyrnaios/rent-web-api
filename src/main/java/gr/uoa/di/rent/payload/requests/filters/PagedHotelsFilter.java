@@ -1,29 +1,16 @@
 package gr.uoa.di.rent.payload.requests.filters;
 
 import gr.uoa.di.rent.util.AppConstants;
-import org.springframework.format.annotation.DateTimeFormat;
-
 import javax.validation.constraints.FutureOrPresent;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 
-public class PagedHotelsFilter extends PagedResponseFilter {
+public class PagedHotelsFilter extends PagedRoomsFilter {
 
     /** * * * * * * * * * * * * *
      *    Hotel Basic Filters   *
      *  * * * * * * * * * * * * */
-    @FutureOrPresent
-    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-    private LocalDate startDate = AppConstants.DEFAULT_START_DATE;
-
-    @FutureOrPresent
-    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-    private LocalDate endDate = AppConstants.DEFAULT_END_DATE;
-
-    @Max(AppConstants.MAX_VISITORS_NUMBER)
-    private int visitors = AppConstants.DEFAULT_VISITORS_NUMBER;
-
     @NotNull
     private double lat;
     @NotNull
@@ -45,12 +32,6 @@ public class PagedHotelsFilter extends PagedResponseFilter {
     private boolean parking = false;
     private boolean roomService = false;
 
-    /** * * * * * * * * * * * * *
-     *     Room Filters    *
-     *  * * * * * * * * * * * * */
-    private int minPrice = AppConstants.MIN_ROOM_PRICE;
-    private int maxPrice = AppConstants.MAX_ROOM_PRICE;
-
 
     public PagedHotelsFilter() {
         super();
@@ -61,10 +42,7 @@ public class PagedHotelsFilter extends PagedResponseFilter {
                              @NotNull double lat, @NotNull double lng, double radius,
                              boolean wifi, boolean swimmingPool, boolean gym, boolean spa, boolean bar, boolean restaurant,
                              boolean petsAllowed, boolean parking, boolean roomService, int minPrice, int maxPrice) {
-        super(page, size, sort_field, order);
-        this.startDate = startDate;
-        this.endDate = endDate;
-        this.visitors = visitors;
+        super(page, size, sort_field, order, startDate, endDate, visitors, minPrice, maxPrice);
         this.lat = lat;
         this.lng = lng;
         this.radius = radius;
@@ -77,32 +55,6 @@ public class PagedHotelsFilter extends PagedResponseFilter {
         this.petsAllowed = petsAllowed;
         this.parking = parking;
         this.roomService = roomService;
-        this.minPrice = minPrice;
-        this.maxPrice = maxPrice;
-    }
-
-    public LocalDate getStartDate() {
-        return startDate;
-    }
-
-    public void setStartDate(LocalDate startDate) {
-        this.startDate = startDate;
-    }
-
-    public LocalDate getEndDate() {
-        return endDate;
-    }
-
-    public void setEndDate(LocalDate endDate) {
-        this.endDate = endDate;
-    }
-
-    public int getVisitors() {
-        return visitors;
-    }
-
-    public void setVisitors(int visitors) {
-        this.visitors = visitors;
     }
 
     public double getLat() {
@@ -201,28 +153,10 @@ public class PagedHotelsFilter extends PagedResponseFilter {
         this.swimmingPool = swimmingPool;
     }
 
-    public int getMinPrice() {
-        return minPrice;
-    }
-
-    public void setMinPrice(int minPrice) {
-        this.minPrice = minPrice;
-    }
-
-    public int getMaxPrice() {
-        return maxPrice;
-    }
-
-    public void setMaxPrice(int maxPrice) {
-        this.maxPrice = maxPrice;
-    }
 
     @Override
     public String toString() {
         return "PagedHotelsFilter{" +
-                "startDate=" + startDate +
-                ", endDate=" + endDate +
-                ", visitors=" + visitors +
                 ", lat=" + lat +
                 ", lng=" + lng +
                 ", radius=" + radius +
@@ -235,8 +169,6 @@ public class PagedHotelsFilter extends PagedResponseFilter {
                 ", petsAllowed=" + petsAllowed +
                 ", parking=" + parking +
                 ", roomService=" + roomService +
-                ", minPrice=" + minPrice +
-                ", maxPrice=" + maxPrice +
                 '}';
     }
 }

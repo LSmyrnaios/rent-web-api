@@ -12,10 +12,10 @@ public class PagedResponseFilter {
 
     private String order = AppConstants.DEFAULT_ORDER;
 
-    public PagedResponseFilter() {
+    PagedResponseFilter() {
     }
 
-    public PagedResponseFilter(int page, int size, String sort_field, String order) {
+    PagedResponseFilter(int page, int size, String sort_field, String order) {
         this.page = page;
         this.size = size;
         this.sort_field = sort_field;

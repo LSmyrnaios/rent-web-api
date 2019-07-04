@@ -7,6 +7,7 @@ import gr.uoa.di.rent.payload.requests.ReservationRequest;
 import gr.uoa.di.rent.payload.requests.RoomRequest;
 import gr.uoa.di.rent.payload.requests.filters.PagedRoomsFilter;
 import gr.uoa.di.rent.payload.responses.PagedResponse;
+import gr.uoa.di.rent.payload.responses.ReservationResponse;
 import gr.uoa.di.rent.payload.responses.RoomResponse;
 import gr.uoa.di.rent.repositories.*;
 import gr.uoa.di.rent.security.CurrentUser;
@@ -91,7 +92,7 @@ public class RoomController {
 
         Pageable pageable = PaginatedResponseUtil.getPageable(pagedRoomsFilter);
 
-        Page<Room> rooms = roomRepository.findAllByHotel_id(hotelId, pageable);
+        Page<Room> rooms = roomRepository.findRoomsByFilters(pagedRoomsFilter, hotelId, pageable);
         if (rooms.getNumberOfElements() == 0) {
             return ResponseEntity.status(HttpStatus.OK).body(new PagedResponse<>(Collections.emptyList(), rooms.getNumber(),
                     rooms.getSize(), rooms.getTotalElements(), rooms.getTotalPages(), rooms.isLast()));
@@ -254,7 +255,7 @@ public class RoomController {
         //execute sql query to subtract money from user, and add said money to business' wallet + admin's business wallet
         hotelRepository.transferMoney(currentUser.getId(), hotelId, (double) total_price);
 
-        return ResponseEntity.ok().body("Room Successfully Booked!");
+        return ResponseEntity.ok(new ReservationResponse("Room successfully booked", 200));
     }
 
     private boolean isAvailable(LocalDate startDate, LocalDate endDate, Long roomID) {

@@ -1,6 +1,5 @@
 package gr.uoa.di.rent.util;
 
-
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
@@ -30,10 +29,8 @@ public interface AppConstants {
     long MAX_RADIUS = 30;
 
     // Default min and max room price
-    int MIN_ROOM_PRICE = 0;
-    int MAX_ROOM_PRICE = 1000;
-
-
+    int DEFAULT_MIN_ROOM_PRICE = 0;
+    int DEFAULT_MAX_ROOM_PRICE = 1000;
 
     List<String> amenity_names = Arrays.asList(
             "wifi",
