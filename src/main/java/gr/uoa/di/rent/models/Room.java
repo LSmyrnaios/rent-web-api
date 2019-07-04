@@ -52,6 +52,10 @@ public class Room extends UserDateAudit implements Serializable {
     @JsonIgnore
     private List<Calendar> calendars;
 
+    @Transient
+    @JsonProperty("photosUrls")
+    private List<String> photosUrls;
+
 
     public Room() {
     }
@@ -120,6 +124,14 @@ public class Room extends UserDateAudit implements Serializable {
         this.calendars = calendars;
     }
 
+    public List<String> getPhotosUrls() {
+        return photosUrls;
+    }
+
+    public void setPhotosUrls(List<String> photosUrls) {
+        this.photosUrls = photosUrls;
+    }
+
 
     @Override
     public String toString() {
@@ -129,6 +141,7 @@ public class Room extends UserDateAudit implements Serializable {
                 ", hotelId=" + hotelId +
                 ", capacity=" + capacity +
                 ", calendars=" + calendars +
+                ", photosUrls=" + photosUrls +
                 '}';
     }
 }
