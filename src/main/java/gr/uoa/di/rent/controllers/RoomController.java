@@ -5,17 +5,21 @@ import gr.uoa.di.rent.exceptions.NotAuthorizedException;
 import gr.uoa.di.rent.models.*;
 import gr.uoa.di.rent.payload.requests.ReservationRequest;
 import gr.uoa.di.rent.payload.requests.RoomRequest;
-import gr.uoa.di.rent.payload.requests.filters.PagedResponseFilter;
+import gr.uoa.di.rent.payload.requests.filters.PagedRoomsFilter;
 import gr.uoa.di.rent.payload.responses.PagedResponse;
 import gr.uoa.di.rent.payload.responses.RoomResponse;
 import gr.uoa.di.rent.repositories.*;
 import gr.uoa.di.rent.security.CurrentUser;
 import gr.uoa.di.rent.security.Principal;
 import gr.uoa.di.rent.services.FileStorageService;
+import gr.uoa.di.rent.util.ModelMapper;
+import gr.uoa.di.rent.util.PaginatedResponseUtil;
 import gr.uoa.di.rent.util.PhotoUtils;
 import gr.uoa.di.rent.util.UriBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -28,7 +32,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.net.URI;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -74,34 +77,35 @@ public class RoomController {
         this.fileRepository = fileRepository;
     }
 
-    @GetMapping("")
-    public List<ResponseEntity<?>> getHotelRooms(@PathVariable(value = "hotelId") Long hotelId) {
 
-        List<ResponseEntity<?>> responses = new ArrayList<>();
+    @GetMapping("")
+    public ResponseEntity<?> getHotelRooms(@PathVariable(value = "hotelId") Long hotelId, PagedRoomsFilter pagedRoomsFilter) {
 
         // Check if the given hotel exists.
         Optional<Hotel> hotel_opt = hotelRepository.findById(hotelId);
         if ( !hotel_opt.isPresent() ) {
             logger.warn("No hotel exists with id = " + hotelId);
-            responses.add(ResponseEntity.badRequest().build());
-            return responses;
+            return ResponseEntity.badRequest().build();
         }
         Hotel hotel = hotel_opt.get();
 
-        List<Room> rooms = roomRepository.findAllByHotel_id(hotelId);
-        if ( rooms == null ) {
-            responses.add(ResponseEntity.notFound().build());
-            return responses;
+        Pageable pageable = PaginatedResponseUtil.getPageable(pagedRoomsFilter);
+
+        Page<Room> rooms = roomRepository.findAllByHotel_id(hotelId, pageable);
+        if (rooms.getNumberOfElements() == 0) {
+            return ResponseEntity.status(HttpStatus.OK).body(new PagedResponse<>(Collections.emptyList(), rooms.getNumber(),
+                    rooms.getSize(), rooms.getTotalElements(), rooms.getTotalPages(), rooms.isLast()));
         }
 
-        List<String> photoUrls = PhotoUtils.getPhotoUrls(hotel, fileRepository, true);
+        List<Room> roomResponses = rooms.map(ModelMapper::mapRoomtoRoomResponse).getContent();
 
-        for ( Room room : rooms ) {
-            // Find and set the photo_urls of this room and add the related response.
-            responses.add(ResponseEntity.ok(new RoomResponse(room, photoUrls)));
-        }
+        // Set the hotelPhotosUrls.
+        List<String> photosUrls = PhotoUtils.getPhotoUrls(hotel, fileRepository, true);
+        for ( Room room : roomResponses )
+            room.setPhotosUrls(photosUrls);
 
-        return responses;
+        return ResponseEntity.status(HttpStatus.OK).body(new PagedResponse<>(roomResponses, rooms.getNumber(),
+                rooms.getSize(), rooms.getTotalElements(), rooms.getTotalPages(), rooms.isLast()));
     }
 
 
@@ -147,11 +151,6 @@ public class RoomController {
             return ResponseEntity.created(uri).body("Rooms successfully created!");
     }
 
-    @GetMapping("/paged")
-    public PagedResponse<Room> getHotelRoomsPaginated(PagedResponseFilter pagedResponseFilter) {
-
-        return null;
-    }
 
     @GetMapping("/{roomId:[\\d]+}")
     public ResponseEntity<?> getHotelRoom(@PathVariable(value = "hotelId") Long hotelId, @PathVariable(value = "roomId") Long roomId) {
@@ -169,9 +168,12 @@ public class RoomController {
             logger.warn("No room with id = " + roomId + " was found in hotel with id = " + hotelId);
             return ResponseEntity.notFound().build();
         }
+        Room room = room_opt.get();
 
         // Find and set the photo_urls of this room.
-        return ResponseEntity.ok(new RoomResponse(room_opt.get(), PhotoUtils.getPhotoUrls(hotel_opt.get(), fileRepository, true)));
+        room.setPhotosUrls(PhotoUtils.getPhotoUrls(hotel_opt.get(), fileRepository, true));
+
+        return ResponseEntity.ok(new RoomResponse(room));
     }
 
 
@@ -265,7 +267,7 @@ public class RoomController {
 
     @PostMapping("/photos")
     @PreAuthorize("hasRole('PROVIDER') or hasRole('ADMIN')")
-    public List<ResponseEntity<?>> uploadRoomsPhoto(@Valid @CurrentUser Principal principal, @RequestParam("file") MultipartFile file,
+    public ResponseEntity<?> uploadRoomsPhoto(@Valid @CurrentUser Principal principal, @RequestParam("file") MultipartFile file,
                                                      @PathVariable(value = "hotelId") Long hotelId) {
 
         return PhotoUtils.handleUploadOfMultipleHotelOrRoomPhotos(principal, file, hotelId, fileController, userRepository, hotelRepository, true);

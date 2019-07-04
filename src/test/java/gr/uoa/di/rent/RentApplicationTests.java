@@ -194,9 +194,8 @@ public class RentApplicationTests {
                 new Wallet(provider, 0.00)
         );
 
-        // Create 2 hotels each having 3 rooms.
+        // Create 5 hotels each having a random number of rooms.
         int numOfHotels = 5;      //    must be <= 5
-        int numOfRooms = 3;
         int numOfCalendarsEntriesPerRoom = 2;
 
         List<Hotel> hotels = new ArrayList<>();
@@ -468,7 +467,11 @@ public class RentApplicationTests {
 
 
         for (int country = 0; country < 4; country++)
-            for (int i = 0; i < numOfHotels; i++) {
+
+            for (int i = 0; i < numOfHotels; i++)
+            {
+                int numOfRooms = (int)(Math.random() * ((10 - 3) + 1) + 3);
+
                 hotel = new Hotel(business, names.get(country * numOfHotels + i),
                         "info@" + String.format("hotel<%d>_%d", country + 1, i + 1) + ".com", numOfRooms,
                         countrieslat[country] + 0.001 * i, countrieslng[country] + 0.001 * i,

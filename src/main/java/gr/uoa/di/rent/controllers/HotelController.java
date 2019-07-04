@@ -17,6 +17,7 @@ import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -115,7 +116,7 @@ public class HotelController {
         if (uri == null)
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unable to construct the hotel-URI");
         else
-            return ResponseEntity.created(uri).body(new HotelResponse(hotel, null));
+            return ResponseEntity.created(uri).body(new HotelResponse(hotel));
     }
 
     @GetMapping("/{hotelId:[\\d]+}")
@@ -130,7 +131,49 @@ public class HotelController {
         Hotel hotel = hotel_opt.get();
 
         // Find and set the photo_urls of this hotel and return the related response.
-        return ResponseEntity.ok(new HotelResponse(hotel, PhotoUtils.getPhotoUrls(hotel, fileRepository, false)));
+        hotel.setPhotosUrls(PhotoUtils.getPhotoUrls(hotel, fileRepository, false));
+
+        return ResponseEntity.ok(new HotelResponse(hotel));
+    }
+
+
+    @GetMapping("/byProviderId/{providerId:[\\d]+}")
+    @PreAuthorize("hasRole('PROVIDER') or hasRole('ADMIN')")
+    public ResponseEntity<?> getHotelsByProvider(@Valid @CurrentUser Principal principal, @Valid @PathVariable(value = "providerId") Long providerId,
+                                                 PagedHotelsFilter pagedHotelsFilters)
+    {
+        // If current user is not Admin and the given "userId" is not the same as the current user requesting, then return error.
+        if ( !principal.getUser().getId().equals(providerId) && !principal.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN")) ) {
+            throw new NotAuthorizedException("You are not authorized to get the hotel-data of another provider!");
+        }
+
+        // Get the provider by the providerId.
+        User provider = userRepository.findById(providerId).orElse(null);
+        if (provider == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Provider not found!");
+        }
+
+        Business business = provider.getBusiness();
+        if ( business == null )
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("No business was found for provider with username: " + provider.getUsername());
+
+        Pageable pageable = PaginatedResponseUtil.getPageable(pagedHotelsFilters);
+
+        Page<Hotel> hotels = hotelRepository.findAllByBusiness(business, pageable);
+
+        if (hotels.getNumberOfElements() == 0) {
+            return ResponseEntity.status(HttpStatus.OK).body(new PagedResponse<>(Collections.emptyList(), hotels.getNumber(),
+                    hotels.getSize(), hotels.getTotalElements(), hotels.getTotalPages(), hotels.isLast()));
+        }
+
+        List<Hotel> hotelResponses = hotels.map(ModelMapper::mapHoteltoHotelResponse).getContent();
+
+        // Set the hotelPhotosUrls.
+        for ( Hotel hotel : hotelResponses )
+            hotel.setPhotosUrls(PhotoUtils.getPhotoUrls(hotel, fileRepository, false));
+
+        return ResponseEntity.status(HttpStatus.OK).body(new PagedResponse<>(hotelResponses, hotels.getNumber(),
+                hotels.getSize(), hotels.getTotalElements(), hotels.getTotalPages(), hotels.isLast()));
     }
 
     @GetMapping("/search")
@@ -144,14 +187,6 @@ public class HotelController {
         } catch (Exception e) {
             throw new BadRequestException("Instantiation problem!");
         }
-
-        Sort.Direction sort_order;
-
-        /* Default order is ASC, otherwise DESC */
-        if (AppConstants.DEFAULT_ORDER.equals(pagedHotelsFilters.getOrder()))
-            sort_order = Sort.Direction.ASC;
-        else
-            sort_order = Sort.Direction.DESC;
 
         /* Create a list with all the amenity filters that are to be applied */
         Field[] fields = pagedHotelsFilters.getClass().getDeclaredFields();
@@ -171,8 +206,7 @@ public class HotelController {
                 .map(Field::getName)
                 .forEach(queryAmenities::add);
 
-        Pageable pageable = PageRequest.of(pagedHotelsFilters.getPage(), pagedHotelsFilters.getSize(),
-                sort_order, pagedHotelsFilters.getSort_field());
+        Pageable pageable = PaginatedResponseUtil.getPageable(pagedHotelsFilters);
 
         /* Get All Hotels  */
         Page<Hotel> hotels;
@@ -211,6 +245,10 @@ public class HotelController {
 
         List<Hotel> hotelResponses = hotels.map(ModelMapper::mapHoteltoHotelResponse).getContent();
 
+        // Set the hotelPhotosUrls.
+        for ( Hotel hotel : hotelResponses )
+            hotel.setPhotosUrls(PhotoUtils.getPhotoUrls(hotel, fileRepository, false));
+
         return new SearchResponse(floor, ceil,
                 new AmenitiesCount(1,
                         2,
@@ -231,7 +269,7 @@ public class HotelController {
 
     @PostMapping("/{hotelId:[\\d]+}/photos")
     @PreAuthorize("hasRole('PROVIDER') or hasRole('ADMIN')")
-    public List<ResponseEntity<?>> uploadHotelPhoto(@Valid @CurrentUser Principal principal, @RequestParam("file") MultipartFile file, @PathVariable(value = "hotelId") Long hotelId) {
+    public ResponseEntity<?> uploadHotelPhoto(@Valid @CurrentUser Principal principal, @RequestParam("file") MultipartFile file, @PathVariable(value = "hotelId") Long hotelId) {
 
         return PhotoUtils.handleUploadOfMultipleHotelOrRoomPhotos(principal, file, hotelId, fileController, userRepository, hotelRepository, false);
     }

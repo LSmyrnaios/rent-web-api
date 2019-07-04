@@ -37,16 +37,13 @@ public class PhotoUtils {
     private static String genericRoomPhotoName = "generic_room_photo.jpg";
 
 
-    public static List<ResponseEntity<?>> handleUploadOfMultipleHotelOrRoomPhotos(Principal principal, MultipartFile file, Long hotelId, FileController fileController,
+    public static ResponseEntity<?> handleUploadOfMultipleHotelOrRoomPhotos(Principal principal, MultipartFile file, Long hotelId, FileController fileController,
                                                                                   UserRepository userRepository, HotelRepository hotelRepository, boolean isForRooms)
     {
-        List<ResponseEntity<?>> responses = new ArrayList<>();
-
         if ( file == null ) {
             String errorMessage = "No file received!";
             logger.error(errorMessage);
-            responses.add(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage));
-            return responses;
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
         }
 
         // Check if the hotel exists.
@@ -54,8 +51,7 @@ public class PhotoUtils {
         if ( !hotel_opt.isPresent() ) {
             String errorMessage = "No hotel exists with id = " + hotelId;
             logger.error(errorMessage);
-            responses.add(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage));
-            return responses;
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
         }
         Hotel hotel = hotel_opt.get();  // Used also for file-insertion later.
 
@@ -82,8 +78,7 @@ public class PhotoUtils {
         if ( fileName == null ) {
             String errorMessage = "Failure when retrieving the filename of the incoming file!";
             logger.error(errorMessage);
-            responses.add(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage));
-            return responses;
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
         }
 
         String fileExtension = FilenameUtils.getExtension(fileName)
@@ -94,9 +89,7 @@ public class PhotoUtils {
         String fileDownloadURI = baseDownloadURI + fileName;
 
         // Send file to be stored. We set a new principal in order for the following method to know the user-provider who will have a new photo for its hotel, who provider, might not be the current user (the current user might be the admin who changes the photo of a hotel).
-        responses.add(fileController.uploadFile(Principal.getInstance(user), file, fileName, null, fileDownloadURI, hotel, isForRooms));
-
-        return responses;
+        return fileController.uploadFile(Principal.getInstance(user), file, fileName, null, fileDownloadURI, hotel, isForRooms);
     }
 
 
