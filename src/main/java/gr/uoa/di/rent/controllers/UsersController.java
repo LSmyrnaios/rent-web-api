@@ -10,6 +10,7 @@ import gr.uoa.di.rent.payload.requests.UserUpdateRequest;
 import gr.uoa.di.rent.payload.requests.filters.PagedUsersFilter;
 import gr.uoa.di.rent.payload.responses.LockUnlockResponse;
 import gr.uoa.di.rent.payload.responses.PagedResponse;
+import gr.uoa.di.rent.payload.responses.UserInfo;
 import gr.uoa.di.rent.repositories.FileRepository;
 import gr.uoa.di.rent.repositories.ProfileRepository;
 import gr.uoa.di.rent.repositories.RoleRepository;
@@ -162,11 +163,19 @@ public class UsersController {
     public ResponseEntity getProfileByUsername(@PathVariable(value = "username") String username) {
 
         User user = userRepository.findByUsername(username).orElse(null);
-        if (user != null) {
-            return ResponseEntity.ok(user.getProfile());
-        } else {
+
+
+        if (user == null) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
         }
+
+
+        Double balance = user.getWallet().getBalance();
+
+        UserInfo userinformation = new UserInfo(user.getProfile(), balance);
+
+        return ResponseEntity.ok(userinformation);
+
     }
 
     @PutMapping("/lock")
@@ -318,14 +327,14 @@ public class UsersController {
                 .orElseThrow(() -> new UserNotExistException("User with id <" + userId + "> does not exist!"));
 
         String fileName = file.getOriginalFilename();
-        if ( fileName == null ) {
+        if (fileName == null) {
             String errorMessage = "Failure when retrieving the filename of the incoming file!";
             logger.error(errorMessage);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
         }
 
         String fileExtension = FilenameUtils.getExtension(fileName)
-                                            .toLowerCase(); // Linux are case insensitive, so make all file-extensions to lowerCase.
+                .toLowerCase(); // Linux are case insensitive, so make all file-extensions to lowerCase.
 
         // Replace with standard profile_photo name.
         fileName = profilePhotoBaseName + "." + fileExtension;
@@ -380,7 +389,7 @@ public class UsersController {
             }
 
             String uriStr = uri.toString();
-            if ( !uriStr.contains(profileBaseURI) ) {
+            if (!uriStr.contains(profileBaseURI)) {
                 String errorMsg = "This uri does not refer to a file existing in this server! - " + uriStr + "";
                 logger.error(errorMsg);
                 throw new ProfilePhotoException(errorMsg);
