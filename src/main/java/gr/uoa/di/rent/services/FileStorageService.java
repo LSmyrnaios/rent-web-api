@@ -49,12 +49,24 @@ public class FileStorageService {
     public gr.uoa.di.rent.models.File storeFile(MultipartFile file, String fileName, String innerDir, String fileDownloadUri, User uploader, Hotel hotel, boolean isForRooms)
             throws FileStorageException {
 
+        if ( file == null ) {
+            String errMsg = "File was null!";
+            logger.error(errMsg);
+            throw new FileStorageException(errMsg);
+        }
+
         String file_name;
 
-        if ( fileName != null ) {
+        if ( fileName != null )
             file_name = StringUtils.cleanPath(fileName);
-        } else {
-            file_name = StringUtils.cleanPath(file.getOriginalFilename());
+        else {
+            fileName = file.getOriginalFilename();
+            if ( fileName == null ) {
+                String errMsg = "FileName was null!";
+                logger.error(errMsg);
+                throw new FileStorageException(errMsg);
+            }
+            file_name = StringUtils.cleanPath(fileName);
         }
 
         if ( fileDownloadUri == null )  // If it's not specified by a specific endpoint (e.g. uploadProfilePhoto).
@@ -96,8 +108,9 @@ public class FileStorageService {
 
         } catch (FileNotFoundException fnfe) {
             throw fnfe; // Avoid creating a new exception-object + keeping the original stack-trace.
-        } catch (Exception ex) {
-            throw new FileStorageException("Could not store file: " + file_name + ". Please try again!", ex);
+        } catch (Exception e) {
+            logger.error("e", e);
+            throw new FileStorageException("Could not store file: " + file_name + ". Please try again!", e);
         }
     }
 
@@ -112,8 +125,9 @@ public class FileStorageService {
             }
         } catch ( FileNotFoundException fnfe) {
             throw fnfe; // Avoid creating a new exception-object + keeping the original stack-trace.
-        } catch (Exception ex) {
-            throw new FileNotFoundException("File not found " + fileName, ex);
+        } catch (Exception e) {
+            logger.error("e", e);
+            throw new FileNotFoundException("File not found " + fileName, e);
         }
     }
 }
