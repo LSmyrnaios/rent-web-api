@@ -93,6 +93,10 @@ public class Hotel extends UserDateAudit implements Serializable {
     @JsonIgnore
     private Integer hotelPhotosCounter;
 
+    @Transient
+    @JsonProperty("photosUrls")
+    private List<String> photosUrls;
+
     @OneToMany(mappedBy = "hotel", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<File> rooms_photos;
@@ -141,6 +145,8 @@ public class Hotel extends UserDateAudit implements Serializable {
         this.descriptionLong = descriptionLong;
         this.stars = stars;
         this.setBusiness(business);
+
+        // Set them to "0" here, otherwise they will be null.
         this.hotelPhotosCounter = 0;
         this.roomsPhotosCounter = 0;
     }
@@ -162,6 +168,8 @@ public class Hotel extends UserDateAudit implements Serializable {
         this.descriptionLong = descriptionLong;
         this.stars = stars;
         this.business_id = business_id;
+
+        // Set them to "0" here, otherwise they will be null.
         this.hotelPhotosCounter = 0;
         this.roomsPhotosCounter = 0;
     }
@@ -279,6 +287,14 @@ public class Hotel extends UserDateAudit implements Serializable {
         this.hotelPhotosCounter = hotelPhotosCounter;
     }
 
+    public List<String> getPhotosUrls() {
+        return photosUrls;
+    }
+
+    public void setPhotosUrls(List<String> photosUrls) {
+        this.photosUrls = photosUrls;
+    }
+
     public List<File> getRooms_photos() {
         return rooms_photos;
     }
@@ -310,6 +326,7 @@ public class Hotel extends UserDateAudit implements Serializable {
                 ", stars='" + stars + '\'' +
                 ", business_id=" + business_id +
                 ", hotelPhotosCounter=" + hotelPhotosCounter +
+                ", photosUrls=" + photosUrls +
                 ", roomsPhotosCounter=" + roomsPhotosCounter +
                 '}';
     }

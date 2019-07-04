@@ -115,7 +115,7 @@ public class HotelController {
         if (uri == null)
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unable to construct the hotel-URI");
         else
-            return ResponseEntity.created(uri).body(new HotelResponse(hotel, null));
+            return ResponseEntity.created(uri).body(new HotelResponse(hotel));
     }
 
     @GetMapping("/{hotelId:[\\d]+}")
@@ -130,7 +130,9 @@ public class HotelController {
         Hotel hotel = hotel_opt.get();
 
         // Find and set the photo_urls of this hotel and return the related response.
-        return ResponseEntity.ok(new HotelResponse(hotel, PhotoUtils.getPhotoUrls(hotel, fileRepository, false)));
+        hotel.setPhotosUrls(PhotoUtils.getPhotoUrls(hotel, fileRepository, false));
+
+        return ResponseEntity.ok(new HotelResponse(hotel));
     }
 
     @GetMapping("/search")
