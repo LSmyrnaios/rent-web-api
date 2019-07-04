@@ -56,8 +56,9 @@ public class HotelController {
     public static String hotelBaseURI = "https://localhost:8443/api/hotels/";
 
 
-    public HotelController(BusinessRepository businessRepository, HotelRepository hotelRepository, UserRepository userRepository, FileStorageService fileStorageService,
-                           AmenitiesRepository amenitiesRepository, FileController fileController, FileRepository fileRepository) {
+    public HotelController(BusinessRepository businessRepository, HotelRepository hotelRepository, UserRepository userRepository,
+                           FileStorageService fileStorageService, AmenitiesRepository amenitiesRepository,
+                           FileController fileController, FileRepository fileRepository) {
         this.businessRepository = businessRepository;
         this.hotelRepository = hotelRepository;
         this.amenitiesRepository = amenitiesRepository;
@@ -213,8 +214,8 @@ public class HotelController {
 
         /* Get All Hotels  */
         Page<Hotel> hotels;
-        int floor = AppConstants.MIN_ROOM_PRICE;
-        int ceil = AppConstants.MAX_ROOM_PRICE;
+        int floor = AppConstants.DEFAULT_MIN_ROOM_PRICE;
+        int ceil = AppConstants.DEFAULT_MAX_ROOM_PRICE;
 
         /* If no amenities were given, search only with the basic filters */
         if (!queryAmenities.isEmpty()) {
