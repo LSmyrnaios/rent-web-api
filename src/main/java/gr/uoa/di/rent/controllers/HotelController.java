@@ -101,13 +101,16 @@ public class HotelController {
         List<File> hotel_photos = new ArrayList<>();
         hotel.setHotel_photos(hotel_photos);
 
-        /* Get list of amenities from request */
-        Collection<Amenity> amenities = amenitiesRepository.findAll()
-                .stream()
-                .filter(amenity -> hotelRequest.getAmenities().contains(amenity.getName()))
-                .collect(Collectors.toList());
+        List<String> hotelRequestAmenities = hotelRequest.getAmenities();
+        if ( hotelRequestAmenities != null ) {
+            /* Get list of amenities from request */
+            Collection<Amenity> amenities = amenitiesRepository.findAll()
+                    .stream()
+                    .filter(amenity -> hotelRequestAmenities.contains(amenity.getName()))
+                    .collect(Collectors.toList());
 
-        hotel.setAmenities(amenities);
+            hotel.setAmenities(amenities);
+        }
 
         /* Store the hotel in the database. */
         hotel = hotelRepository.save(hotel);
