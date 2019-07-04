@@ -1,6 +1,10 @@
 package gr.uoa.di.rent.util;
 
 import gr.uoa.di.rent.exceptions.BadRequestException;
+import gr.uoa.di.rent.payload.requests.filters.PagedResponseFilter;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 
 public class PaginatedResponseUtil {
@@ -23,5 +27,19 @@ public class PaginatedResponseUtil {
         } catch (Exception e) {
             throw new BadRequestException("Invalid field. The field must belong to the '" + t_class.getClass().getSimpleName() + "' class!");
         }
+    }
+
+    public static Pageable getPageable(PagedResponseFilter pagedResponseFilter)
+    {
+        Sort.Direction sort_order;
+
+        /* Default order is ASC, otherwise DESC */
+        if (AppConstants.DEFAULT_ORDER.equals(pagedResponseFilter.getOrder()))
+            sort_order = Sort.Direction.ASC;
+        else
+            sort_order = Sort.Direction.DESC;
+
+        return PageRequest.of(pagedResponseFilter.getPage(), pagedResponseFilter.getSize(),
+                sort_order, pagedResponseFilter.getSort_field());
     }
 }

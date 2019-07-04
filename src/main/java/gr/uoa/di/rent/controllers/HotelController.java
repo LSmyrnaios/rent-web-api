@@ -147,14 +147,6 @@ public class HotelController {
             throw new BadRequestException("Instantiation problem!");
         }
 
-        Sort.Direction sort_order;
-
-        /* Default order is ASC, otherwise DESC */
-        if (AppConstants.DEFAULT_ORDER.equals(pagedHotelsFilters.getOrder()))
-            sort_order = Sort.Direction.ASC;
-        else
-            sort_order = Sort.Direction.DESC;
-
         /* Create a list with all the amenity filters that are to be applied */
         Field[] fields = pagedHotelsFilters.getClass().getDeclaredFields();
 
@@ -173,8 +165,7 @@ public class HotelController {
                 .map(Field::getName)
                 .forEach(queryAmenities::add);
 
-        Pageable pageable = PageRequest.of(pagedHotelsFilters.getPage(), pagedHotelsFilters.getSize(),
-                sort_order, pagedHotelsFilters.getSort_field());
+        Pageable pageable = PaginatedResponseUtil.getPageable(pagedHotelsFilters);
 
         /* Get All Hotels  */
         Page<Hotel> hotels;
@@ -212,6 +203,10 @@ public class HotelController {
         }
 
         List<Hotel> hotelResponses = hotels.map(ModelMapper::mapHoteltoHotelResponse).getContent();
+
+        // Set the hotelPhotosUrls.
+        for ( Hotel hotel : hotelResponses )
+            hotel.setPhotosUrls(PhotoUtils.getPhotoUrls(hotel, fileRepository, false));
 
         return new SearchResponse(floor, ceil,
                 new AmenitiesCount(1,
