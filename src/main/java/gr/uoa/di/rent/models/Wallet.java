@@ -14,7 +14,9 @@ import java.io.Serializable;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({
         "id",
-        "balance"
+        "balance",
+        "user_owner_id",
+        "business_owner_id"
 })
 public class Wallet extends UserDateAudit implements Serializable {
 

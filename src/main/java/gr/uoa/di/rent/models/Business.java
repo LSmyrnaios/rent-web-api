@@ -93,7 +93,7 @@ public class Business extends UserDateAudit {
     @JsonProperty("provider_id")
     private Long provider_id;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "wallet")
     @JsonProperty("wallet")
     private Wallet wallet;

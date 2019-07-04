@@ -1,19 +1,25 @@
 package gr.uoa.di.rent.controllers;
 
+import gr.uoa.di.rent.exceptions.NotAuthorizedException;
 import gr.uoa.di.rent.models.Business;
+import gr.uoa.di.rent.models.User;
 import gr.uoa.di.rent.payload.requests.ProviderApplicationRequest;
+import gr.uoa.di.rent.payload.responses.BusinessResponse;
 import gr.uoa.di.rent.repositories.BusinessRepository;
+import gr.uoa.di.rent.repositories.UserRepository;
 import gr.uoa.di.rent.security.CurrentUser;
 import gr.uoa.di.rent.security.Principal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import javax.validation.constraints.Min;
 import java.util.List;
 import java.util.Map;
 
@@ -26,8 +32,12 @@ public class BusinessController {
 
     private final BusinessRepository businessRepository;
 
-    public BusinessController(BusinessRepository businessRepository) {
+    private final UserRepository userRepository;
+
+
+    public BusinessController(BusinessRepository businessRepository, UserRepository userRepository) {
         this.businessRepository = businessRepository;
+        this.userRepository = userRepository;
     }
 
     @GetMapping("")
@@ -58,12 +68,26 @@ public class BusinessController {
         ));
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/byProviderId/{providerId:[\\d]+}")
     @PreAuthorize("hasRole('PROVIDER') or hasRole('ADMIN')")
-    Business findOne(@PathVariable @Min(1) Long id) {
-        return businessRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Business [" + id + "] not found!")
-                );
+    ResponseEntity<?> getBusinessByProviderId(@Valid @CurrentUser Principal principal, @PathVariable Long providerId) {
+
+        // If current user is not Admin and the given "userId" is not the same as the current user requesting, then return error.
+        if ( !principal.getUser().getId().equals(providerId) && !principal.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN")) ) {
+            throw new NotAuthorizedException("You are not authorized to get the business-data of another provider!");
+        }
+
+        // Get the provider by the providerId.
+        User provider = userRepository.findById(providerId).orElse(null);
+        if (provider == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Provider not found!");
+        }
+
+        Business business = provider.getBusiness();
+        if ( business == null )
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("No business was found for provider with username: " + provider.getUsername());
+
+        return ResponseEntity.ok(new BusinessResponse(business));
     }
 
     @PutMapping("/{id}")
